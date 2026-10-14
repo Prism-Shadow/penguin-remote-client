@@ -69,8 +69,10 @@ This is an independently maintained client source project, not a signed release.
 See [source boundaries](docs/source-boundaries.md) for provenance, shared-code
 maintenance and integration-test ownership.
 
-The workflow currently builds and uploads Actions artifacts only; it does not
-publish GitHub Releases. Signing and macOS notarization are not configured.
+The workflow checks main/PR source and packages all supported targets for manual
+runs or matching version tags. A successful version-tag matrix publishes an
+unsigned prerelease with checksums and a source manifest. See
+[desktop releases](docs/releases.md). Signing and macOS notarization are not configured.
 
 ## License
 

@@ -43,3 +43,4 @@ const electronExecutable = path.join(
 if (!fs.existsSync(electronExecutable)) runPnpm(["exec", "install-electron"]);
 runPnpm(["build"]);
 runPnpm(["exec", "electron-builder", builderPlatform, builderArch, "--publish", "never"]);
+run(process.execPath, ["scripts/verify-package.mjs", platform, arch]);

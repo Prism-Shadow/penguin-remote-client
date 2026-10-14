@@ -1,28 +1,64 @@
-name: Desktop build
+name: Desktop build and release
 
 on:
   pull_request:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - "desktop-v*"
 
 permissions:
   contents: read
 
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Validate release version
+        id: version
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const version = JSON.parse(fs.readFileSync("desktop/package.json", "utf8")).version;
+            if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) throw new Error("Invalid package version");
+            if (process.env.GITHUB_REF_TYPE === "tag" && process.env.GITHUB_REF_NAME !== "desktop-v" + version) throw new Error("Tag/package version mismatch");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, "version=" + version + "\n");
+          '
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
       - run: go test -mod=readonly -buildvcs=false ./...
+      - name: Go lifecycle race tests
+        run: go test -race -mod=readonly -buildvcs=false ./cmd/penguin-remote
+        env:
+          CGO_ENABLED: "1"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - run: pnpm --dir desktop install --frozen-lockfile
+      - run: pnpm --dir desktop typecheck
+      - run: pnpm --dir desktop test
+      - run: node desktop/scripts/check-legal.mjs
 
   package:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/desktop-v')
     needs: check
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +81,8 @@ jobs:
         working-directory: desktop
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
@@ -62,9 +100,62 @@ jobs:
       - run: pnpm ${{ matrix.command }}
         env:
           PENGUIN_REMOTE_GO_URL: https://go.penguin.ooo
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          APPIMAGE_EXTRACT_AND_RUN: "1"
       - uses: actions/upload-artifact@v4
         with:
           name: penguin-remote-${{ matrix.artifact }}
           if-no-files-found: error
+          retention-days: 14
           path: |
             dist/desktop/penguin-remote-*
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/desktop-v')
+    needs: [check, package]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: penguin-remote-*
+          merge-multiple: true
+          path: release-assets
+      - name: Prepare complete release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/prepare-release.mjs --dir release-assets --tag "$RELEASE_TAG" --commit "$GITHUB_SHA"
+      - name: Upload and publish unsigned prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          printf '%s\n' \
+            'Unsigned preview build. Windows/macOS trust prompts are expected; macOS is not notarized.' \
+            'Official Penguin Go endpoint: https://go.penguin.ooo. Remote subscription and compatible server deployment are required.' \
+            'Legacy credentials require a fresh sign-in. SHA256SUMS.txt and release-manifest.json identify the uploaded files and source commit.' \
+            > release-notes.txt
+          if gh release view "$RELEASE_TAG" --json isDraft,targetCommitish > existing-release.json 2>/dev/null; then
+            node --input-type=module -e '
+              import fs from "node:fs";
+              const release = JSON.parse(fs.readFileSync("existing-release.json", "utf8"));
+              if (!release.isDraft || release.targetCommitish !== process.env.GITHUB_SHA) throw new Error("Never overwrite a published or different-source release");
+            '
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --target "$GITHUB_SHA" --draft --prerelease \
+              --title "Penguin Remote $RELEASE_VERSION (Unsigned Preview)" --notes-file release-notes.txt
+          fi
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          gh api "repos/$GH_REPO/releases/tags/$RELEASE_TAG" > uploaded-release.json
+          node scripts/verify-uploaded-release.mjs release-assets uploaded-release.json
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease
