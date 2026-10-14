@@ -1,0 +1,26 @@
+Penguin Remote Client
+Copyright 2026 Prism Shadow and Penguin Remote contributors
+
+Project-owned source code and documentation are licensed under the
+Apache License, Version 2.0. See LICENSE for the full license terms.
+Third-party components retain their own copyrights and licenses.
+
+This product includes frp v0.71.0, developed by fatedier and the frp Authors,
+under the Apache License, Version 2.0. The vendored distribution retains its
+original LICENSE and copyright headers. Penguin Remote additions and changes
+are identified in the affected files and third_party/frp/REMOTE_CHANGES.md.
+
+The Go native client includes separately licensed Go dependencies and the
+Go standard library. The desktop application includes Electron and its
+Chromium/Node.js components. See THIRD_PARTY_NOTICES.md and third_party/licenses
+for attribution and license texts. Desktop distributions retain Electron's
+LICENSE.electron.txt and LICENSES.chromium.html supplied by Electron.
+
+Some UI icon geometry is adapted from Lucide/Feather. The upstream ISC and
+MIT attribution/license terms are preserved in third_party/licenses/lucide.txt.
+
+Licensing this source does not grant access to the official Penguin Remote
+service or waive its subscription and server-side authorization requirements.
+No rights to trademarks, endorsement or official service identities are
+granted by this notice. The support QR image identifies the public support
+channel; it is not an authentication credential.

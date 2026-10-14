@@ -1,0 +1,45 @@
+{
+  "name": "penguin-remote-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Prism-Shadow/penguin-remote-client.git",
+    "directory": "desktop"
+  },
+  "author": "Prism Shadow",
+  "type": "module",
+  "description": "Electron desktop shell for Penguin Remote.",
+  "main": "dist/main.js",
+  "scripts": {
+    "postinstall": "install-electron",
+    "build": "tsup && node scripts/write-build-config.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "start": "node scripts/build-native.mjs host && pnpm build && electron .",
+    "pack:win": "node scripts/package.mjs win x64",
+    "pack:mac:x64": "node scripts/package.mjs mac x64",
+    "pack:mac:arm64": "node scripts/package.mjs mac arm64",
+    "pack:linux": "node scripts/package.mjs linux x64",
+    "pack:linux:arm64": "node scripts/package.mjs linux arm64"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.16.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

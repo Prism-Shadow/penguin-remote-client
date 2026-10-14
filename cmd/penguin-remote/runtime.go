@@ -1,0 +1,135 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+	"sync"
+	"time"
+
+	"github.com/Prism-Shadow/penguin-remote-client/internal/frpclient"
+	"github.com/Prism-Shadow/penguin-remote-client/internal/harnessapi"
+	"github.com/Prism-Shadow/penguin-remote-client/internal/localproxy"
+	"github.com/Prism-Shadow/penguin-remote-client/internal/remote"
+)
+
+// tunnelRuntime is a running frp client plus its local authenticated proxy.
+// The app talks to it through this interface so tests can drive the tunnel
+// lifecycle and cancellation without a live frps.
+type tunnelRuntime interface {
+	Run(ctx context.Context) error
+	Close()
+	DataRoot() string
+	ProxyConnected() bool
+}
+
+type clientRuntime struct {
+	runner    *frpclient.Runner
+	proxy     *localproxy.Proxy
+	dataRoot  string
+	closeOnce sync.Once
+}
+
+func newTunnelRuntime(ctx context.Context, cfg remote.Config) (tunnelRuntime, error) {
+	return newClientRuntime(ctx, cfg)
+}
+
+func newClientRuntime(ctx context.Context, cfg remote.Config) (*clientRuntime, error) {
+	targetBackend, err := cfg.LocalBackend()
+	if err != nil {
+		return nil, err
+	}
+	access, err := remote.ResolveHarnessAccess(ctx, cfg.Harness.LocalURL, cfg.Harness.DataRoot)
+	if err != nil {
+		return nil, fmt.Errorf("resolve local Harness authorization: %w", err)
+	}
+	harnessClient, err := harnessapi.NewClient(
+		cfg.Harness.LocalURL,
+		access.APIToken,
+		&http.Client{Timeout: 5 * time.Second},
+	)
+	if err != nil {
+		return nil, err
+	}
+	initialSession, err := harnessClient.IssueRemoteSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := cfg.ValidateTunnel(); err != nil {
+		return nil, err
+	}
+	secure, err := publicURLUsesHTTPS(cfg.Tunnel.PublicURL)
+	if err != nil {
+		return nil, err
+	}
+	// Vite rejects the public tunnel Host before serving the pnpm development UI. Normalize
+	// Host and Origin only for that known dev endpoint; packaged Harness servers keep the
+	// browser-facing origin so URL generation and their own origin checks retain normal behavior.
+	proxy, err := localproxy.Start(
+		cfg.Harness.LocalURL,
+		harnessClient,
+		secure,
+		targetBackend.Port == 7365,
+		initialSession,
+	)
+	if err != nil {
+		return nil, err
+	}
+	ip, port := proxy.Backend()
+	runner, err := frpclient.NewRunnerForBackend(cfg, remote.LocalBackend{IP: ip, Port: port})
+	if err != nil {
+		closeCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		_ = proxy.Close(closeCtx)
+		return nil, err
+	}
+	return &clientRuntime{runner: runner, proxy: proxy, dataRoot: access.DataRoot}, nil
+}
+
+func (r *clientRuntime) Run(ctx context.Context) error {
+	return r.runner.Run(ctx)
+}
+
+func (r *clientRuntime) DataRoot() string {
+	if r == nil {
+		return ""
+	}
+	return r.dataRoot
+}
+
+func (r *clientRuntime) ProxyConnected() bool {
+	return r != nil && r.runner != nil && r.runner.ProxyConnected()
+}
+
+func (r *clientRuntime) Close() {
+	if r == nil {
+		return
+	}
+	r.closeOnce.Do(func() {
+		r.runner.GracefulClose(500 * time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = r.proxy.Close(ctx)
+	})
+}
+
+func publicURLUsesHTTPS(raw string) (bool, error) {
+	if raw == "" {
+		return true, nil
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false, fmt.Errorf("parse public URL: %w", err)
+	}
+	switch u.Scheme {
+	case "https":
+		return true, nil
+	case "http":
+		return false, nil
+	default:
+		return false, fmt.Errorf("public URL must use http or https")
+	}
+}
+
+func (r *clientRuntime) ConnectionPhase() string { return r.runner.ConnectionPhase() }

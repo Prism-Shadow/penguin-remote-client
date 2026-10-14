@@ -1,0 +1,3457 @@
+{
+  "schemaVersion": 1,
+  "dependencyFiles": {
+    "go.mod": "b1e0c2cc62ce3357f5b328bc344fc1a3385e4a9730597dfc3787b453c208be64",
+    "go.sum": "0ffc708520f6ba2fa18bbd3192fd77fd9350a0d7fcf774a50341d83a166805b5",
+    "third_party/frp/go.mod": "3251167595ce36bec25d6e6c58cc522547faa6136ed80653bb0ce967c6774fbf",
+    "third_party/frp/go.sum": "75c4573a97c9df7800714ad3bc0927108e9738fcd422fdbfae83db15e3e43230",
+    "desktop/pnpm-lock.yaml": "b5799e414913af6ec6f8ffc074840f1c537124f0c4c3dc0544d664c741ca866c"
+  },
+  "goStandardLibrary": {
+    "version": "go version go1.25.5 windows/amd64",
+    "licenseFile": "go.txt"
+  },
+  "go": [
+    {
+      "name": "./third_party/frp",
+      "version": "v0.71.0",
+      "originalModule": "github.com/fatedier/frp",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/armon/go-socks5",
+      "version": "v0.0.0-20160902184237-e75332964ef5",
+      "originalModule": "github.com/armon/go-socks5",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/Azure/go-ntlmssp",
+      "version": "v0.1.0",
+      "originalModule": "github.com/Azure/go-ntlmssp",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/coreos/go-oidc/v3",
+      "version": "v3.18.0",
+      "originalModule": "github.com/coreos/go-oidc/v3",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "NOTICE"
+      ]
+    },
+    {
+      "name": "github.com/fatedier/golib",
+      "version": "v0.8.2",
+      "originalModule": "github.com/fatedier/golib",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/fatedier/yamux",
+      "version": "v0.0.0-20250825093530-d0154be01cd6",
+      "originalModule": "github.com/hashicorp/yamux",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/go-jose/go-jose/v4",
+      "version": "v4.1.4",
+      "originalModule": "github.com/go-jose/go-jose/v4",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/golang/snappy",
+      "version": "v0.0.4",
+      "originalModule": "github.com/golang/snappy",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/gorilla/mux",
+      "version": "v1.8.1",
+      "originalModule": "github.com/gorilla/mux",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/inconshreveable/mousetrap",
+      "version": "v1.1.0",
+      "originalModule": "github.com/inconshreveable/mousetrap",
+      "targets": [
+        "windows/amd64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/klauspost/cpuid/v2",
+      "version": "v2.2.6",
+      "originalModule": "github.com/klauspost/cpuid/v2",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/klauspost/reedsolomon",
+      "version": "v1.12.0",
+      "originalModule": "github.com/klauspost/reedsolomon",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/pelletier/go-toml/v2",
+      "version": "v2.2.0",
+      "originalModule": "github.com/pelletier/go-toml/v2",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/pires/go-proxyproto",
+      "version": "v0.15.0",
+      "originalModule": "github.com/pires/go-proxyproto",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/pkg/errors",
+      "version": "v0.9.1",
+      "originalModule": "github.com/pkg/errors",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/quic-go/quic-go",
+      "version": "v0.60.0",
+      "originalModule": "github.com/quic-go/quic-go",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/samber/lo",
+      "version": "v1.47.0",
+      "originalModule": "github.com/samber/lo",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/songgao/water",
+      "version": "v0.0.0-20200317203138-2b4b6d7c09d8",
+      "originalModule": "github.com/songgao/water",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/spf13/cobra",
+      "version": "v1.8.0",
+      "originalModule": "github.com/spf13/cobra",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE.txt"
+      ]
+    },
+    {
+      "name": "github.com/spf13/pflag",
+      "version": "v1.0.5",
+      "originalModule": "github.com/spf13/pflag",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/templexxx/cpu",
+      "version": "v0.1.1",
+      "originalModule": "github.com/templexxx/cpu",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/templexxx/xorsimd",
+      "version": "v0.4.3",
+      "originalModule": "github.com/templexxx/xorsimd",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/tjfoc/gmsm",
+      "version": "v1.4.1",
+      "originalModule": "github.com/tjfoc/gmsm",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/vishvananda/netlink",
+      "version": "v1.3.0",
+      "originalModule": "github.com/vishvananda/netlink",
+      "targets": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/vishvananda/netns",
+      "version": "v0.0.4",
+      "originalModule": "github.com/vishvananda/netns",
+      "targets": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "github.com/xtaci/kcp-go/v5",
+      "version": "v5.6.13",
+      "originalModule": "github.com/xtaci/kcp-go/v5",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "golang.org/x/crypto",
+      "version": "v0.54.0",
+      "originalModule": "golang.org/x/crypto",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.org/x/net",
+      "version": "v0.56.0",
+      "originalModule": "golang.org/x/net",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.org/x/oauth2",
+      "version": "v0.36.0",
+      "originalModule": "golang.org/x/oauth2",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "golang.org/x/sync",
+      "version": "v0.22.0",
+      "originalModule": "golang.org/x/sync",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.org/x/sys",
+      "version": "v0.47.0",
+      "originalModule": "golang.org/x/sys",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.org/x/text",
+      "version": "v0.40.0",
+      "originalModule": "golang.org/x/text",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.org/x/time",
+      "version": "v0.10.0",
+      "originalModule": "golang.org/x/time",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    {
+      "name": "golang.zx2c4.com/wintun",
+      "version": "v0.0.0-20230126152724-0fa3db229ce2",
+      "originalModule": "golang.zx2c4.com/wintun",
+      "targets": [
+        "windows/amd64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "golang.zx2c4.com/wireguard",
+      "version": "v0.0.0-20231211153847-12269c276173",
+      "originalModule": "golang.zx2c4.com/wireguard",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "gopkg.in/ini.v1",
+      "version": "v1.67.0",
+      "originalModule": "gopkg.in/ini.v1",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "gopkg.in/yaml.v2",
+      "version": "v2.4.0",
+      "originalModule": "gopkg.in/yaml.v2",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE",
+        "LICENSE.libyaml",
+        "NOTICE"
+      ]
+    },
+    {
+      "name": "k8s.io/apimachinery",
+      "version": "v0.28.8",
+      "originalModule": "k8s.io/apimachinery",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "k8s.io/utils",
+      "version": "v0.0.0-20230406110748-d93618cff8a2",
+      "originalModule": "k8s.io/utils",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "sigs.k8s.io/json",
+      "version": "v0.0.0-20221116044647-bc3834ca7abd",
+      "originalModule": "sigs.k8s.io/json",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "sigs.k8s.io/yaml",
+      "version": "v1.3.0",
+      "originalModule": "sigs.k8s.io/yaml",
+      "targets": [
+        "windows/amd64",
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "licenseFile": "go.txt",
+      "upstreamFiles": [
+        "LICENSE"
+      ]
+    }
+  ],
+  "electron": {
+    "version": "43.7.3",
+    "license": "MIT",
+    "licenseFile": "electron.txt",
+    "chromiumNotices": "Retained from the target Electron distribution by electron-builder"
+  },
+  "uiIcons": {
+    "name": "Lucide/Feather icon geometry",
+    "license": "ISC and MIT for inherited Feather icons",
+    "licenseFile": "lucide.txt",
+    "upstreamLicense": "https://github.com/lucide-icons/lucide/blob/main/LICENSE"
+  },
+  "buildTools": [
+    {
+      "name": "@electron-internal/extract-zip",
+      "version": "1.0.5",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "@electron/asar",
+      "version": "3.4.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/fuses",
+      "version": "1.8.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/get",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/get",
+      "version": "5.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/notarize",
+      "version": "2.5.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/osx-sign",
+      "version": "1.3.3",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/rebuild",
+      "version": "4.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/universal",
+      "version": "2.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@electron/windows-sign",
+      "version": "1.2.2",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@esbuild/win32-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "@esbuild/win32-x64",
+      "version": "0.28.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "@isaacs/fs-minipass",
+      "version": "4.0.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@jridgewell/gen-mapping",
+      "version": "0.3.13",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@jridgewell/resolve-uri",
+      "version": "3.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@jridgewell/sourcemap-codec",
+      "version": "1.6.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@jridgewell/trace-mapping",
+      "version": "0.3.31",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@malept/cross-spawn-promise",
+      "version": "2.0.0",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@malept/flatpak-bundler",
+      "version": "0.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@noble/hashes",
+      "version": "1.8.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@peculiar/asn1-schema",
+      "version": "2.9.5",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@peculiar/json-schema",
+      "version": "1.1.12",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@peculiar/utils",
+      "version": "2.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@peculiar/webcrypto",
+      "version": "1.7.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@rollup/rollup-win32-x64-gnu",
+      "version": "4.63.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "@rollup/rollup-win32-x64-msvc",
+      "version": "4.63.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "@sindresorhus/is",
+      "version": "4.6.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@szmarczak/http-timer",
+      "version": "4.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/cacheable-request",
+      "version": "6.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/chai",
+      "version": "5.2.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/debug",
+      "version": "4.1.13",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/deep-eql",
+      "version": "4.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/estree",
+      "version": "1.0.9",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/fs-extra",
+      "version": "9.0.13",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/http-cache-semantics",
+      "version": "4.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/keyv",
+      "version": "3.1.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/ms",
+      "version": "2.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/node",
+      "version": "24.13.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/responselike",
+      "version": "1.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/expect",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/mocker",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/pretty-format",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/runner",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/snapshot",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/spy",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@vitest/utils",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@xmldom/xmldom",
+      "version": "0.8.15",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "abbrev",
+      "version": "4.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "acorn",
+      "version": "8.18.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "agent-base",
+      "version": "7.1.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ajv",
+      "version": "8.20.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ansi-regex",
+      "version": "5.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ansi-styles",
+      "version": "4.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "any-promise",
+      "version": "1.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "app-builder-lib",
+      "version": "26.16.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "argparse",
+      "version": "2.0.1",
+      "license": "Python-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "asn1js",
+      "version": "3.0.10",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "assertion-error",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "async-exit-hook",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "async",
+      "version": "3.2.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "asynckit",
+      "version": "0.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "at-least-node",
+      "version": "1.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "aws4",
+      "version": "1.13.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "balanced-match",
+      "version": "1.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "balanced-match",
+      "version": "4.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "base64-js",
+      "version": "1.5.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "bluebird",
+      "version": "3.7.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "boolean",
+      "version": "3.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "brace-expansion",
+      "version": "1.1.21",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "brace-expansion",
+      "version": "2.1.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "brace-expansion",
+      "version": "5.0.12",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "buffer-from",
+      "version": "1.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "builder-util-runtime",
+      "version": "9.7.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "builder-util",
+      "version": "26.16.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "bundle-require",
+      "version": "5.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "bytestreamjs",
+      "version": "2.0.1",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "cac",
+      "version": "6.7.14",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "cacheable-lookup",
+      "version": "5.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "cacheable-request",
+      "version": "7.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "call-bind-apply-helpers",
+      "version": "1.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "chai",
+      "version": "5.3.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "chalk",
+      "version": "4.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "check-error",
+      "version": "2.1.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "chokidar",
+      "version": "4.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "chownr",
+      "version": "3.0.0",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "chromium-pickle-js",
+      "version": "0.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "ci-info",
+      "version": "4.3.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ci-info",
+      "version": "4.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "cliui",
+      "version": "8.0.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "clone-response",
+      "version": "1.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "color-convert",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "color-name",
+      "version": "1.1.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "combined-stream",
+      "version": "1.0.8",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "commander",
+      "version": "4.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "commander",
+      "version": "5.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "commander",
+      "version": "9.5.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "compare-version",
+      "version": "0.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "concat-map",
+      "version": "0.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "confbox",
+      "version": "0.1.8",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "consola",
+      "version": "3.4.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "core-util-is",
+      "version": "1.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "cross-dirname",
+      "version": "0.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "debug",
+      "version": "4.4.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "decompress-response",
+      "version": "6.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "deep-eql",
+      "version": "5.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "defer-to-connect",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "define-data-property",
+      "version": "1.1.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "define-properties",
+      "version": "1.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "delayed-stream",
+      "version": "1.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "detect-node",
+      "version": "2.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "dir-compare",
+      "version": "4.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "dmg-builder",
+      "version": "26.16.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "dotenv-expand",
+      "version": "11.0.7",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "dotenv",
+      "version": "16.6.1",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "dunder-proto",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "duplexer2",
+      "version": "0.1.4",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ejs",
+      "version": "3.1.10",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron-builder-squirrel-windows",
+      "version": "26.16.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron-builder",
+      "version": "26.16.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron-publish",
+      "version": "26.16.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron-winstaller",
+      "version": "5.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron",
+      "version": "43.7.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "emoji-regex",
+      "version": "8.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "end-of-stream",
+      "version": "1.4.5",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "env-paths",
+      "version": "2.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "env-paths",
+      "version": "3.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "err-code",
+      "version": "2.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "es-define-property",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "es-errors",
+      "version": "1.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "es-module-lexer",
+      "version": "1.7.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "es-object-atoms",
+      "version": "1.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "es-set-tostringtag",
+      "version": "2.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "es6-error",
+      "version": "4.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "esbuild",
+      "version": "0.27.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "escalade",
+      "version": "3.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "escape-string-regexp",
+      "version": "4.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "estree-walker",
+      "version": "3.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "expect-type",
+      "version": "1.4.0",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "exponential-backoff",
+      "version": "3.1.3",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fast-deep-equal",
+      "version": "3.1.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fast-uri",
+      "version": "3.1.8",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fdir",
+      "version": "6.5.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "filelist",
+      "version": "1.0.6",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "fix-dts-default-cjs-exports",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "form-data",
+      "version": "4.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "10.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "11.3.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "11.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "7.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "8.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "9.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs.realpath",
+      "version": "1.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "function-bind",
+      "version": "1.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "get-caller-file",
+      "version": "2.0.5",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "get-intrinsic",
+      "version": "1.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "get-proto",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "get-stream",
+      "version": "5.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "glob",
+      "version": "7.2.3",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "global-agent",
+      "version": "3.0.0",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "globalthis",
+      "version": "1.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "gopd",
+      "version": "1.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "got",
+      "version": "11.8.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "has-flag",
+      "version": "4.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "has-property-descriptors",
+      "version": "1.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "has-symbols",
+      "version": "1.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "has-tostringtag",
+      "version": "1.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "hasown",
+      "version": "2.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "hosted-git-info",
+      "version": "4.1.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "http-cache-semantics",
+      "version": "4.2.0",
+      "license": "BSD-2-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "http-proxy-agent",
+      "version": "7.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "http2-wrapper",
+      "version": "1.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "https-proxy-agent",
+      "version": "7.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "inflight",
+      "version": "1.0.6",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "inherits",
+      "version": "2.0.4",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "is-fullwidth-code-point",
+      "version": "3.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "isarray",
+      "version": "1.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "isbinaryfile",
+      "version": "4.0.10",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "isbinaryfile",
+      "version": "5.0.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "isexe",
+      "version": "2.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "isexe",
+      "version": "3.1.5",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "isexe",
+      "version": "4.0.0",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "jake",
+      "version": "10.9.4",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "jiti",
+      "version": "2.7.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "joycon",
+      "version": "3.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "js-tokens",
+      "version": "9.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "js-yaml",
+      "version": "4.3.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "json-buffer",
+      "version": "3.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "json-stringify-safe",
+      "version": "5.0.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "json5",
+      "version": "2.2.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "jsonfile",
+      "version": "4.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "jsonfile",
+      "version": "6.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "keyv",
+      "version": "4.5.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "lazy-val",
+      "version": "1.0.5",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "lilconfig",
+      "version": "3.1.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lines-and-columns",
+      "version": "1.2.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "load-tsconfig",
+      "version": "0.2.5",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lodash",
+      "version": "4.18.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "loupe",
+      "version": "3.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lowercase-keys",
+      "version": "2.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lru-cache",
+      "version": "6.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "magic-string",
+      "version": "0.30.21",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "matcher",
+      "version": "3.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "math-intrinsics",
+      "version": "1.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mime-db",
+      "version": "1.52.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mime-types",
+      "version": "2.1.35",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mime",
+      "version": "2.6.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mimic-response",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mimic-response",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minimatch",
+      "version": "10.2.6",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minimatch",
+      "version": "3.1.5",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minimatch",
+      "version": "5.1.9",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minimatch",
+      "version": "9.0.9",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minimist",
+      "version": "1.2.8",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minipass",
+      "version": "7.1.3",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "minizlib",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mkdirp",
+      "version": "0.5.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mlly",
+      "version": "1.8.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ms",
+      "version": "2.1.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "mz",
+      "version": "2.7.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "nanoid",
+      "version": "3.3.19",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "node-abi",
+      "version": "4.35.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "node-api-version",
+      "version": "0.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "node-gyp",
+      "version": "12.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "node-int64",
+      "version": "0.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "nopt",
+      "version": "9.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "normalize-url",
+      "version": "6.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "object-assign",
+      "version": "4.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "object-keys",
+      "version": "1.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "once",
+      "version": "1.4.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "p-cancelable",
+      "version": "2.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "p-limit",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "path-is-absolute",
+      "version": "1.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "path-key",
+      "version": "3.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pathe",
+      "version": "2.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pathval",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pe-library",
+      "version": "0.4.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "picocolors",
+      "version": "1.1.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "picomatch",
+      "version": "4.0.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pirates",
+      "version": "4.0.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pkg-types",
+      "version": "1.3.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pkijs",
+      "version": "3.4.1",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "plist",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "postcss-load-config",
+      "version": "6.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "postcss",
+      "version": "8.5.28",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "postject",
+      "version": "1.0.0-alpha.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "proc-log",
+      "version": "6.1.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "process-nextick-args",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "progress",
+      "version": "2.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "promise-retry",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "proper-lockfile",
+      "version": "4.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pump",
+      "version": "3.0.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pvtsutils",
+      "version": "1.3.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "pvutils",
+      "version": "1.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "quick-lru",
+      "version": "5.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "read-binary-file-arch",
+      "version": "1.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "readable-stream",
+      "version": "2.3.8",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "readdirp",
+      "version": "4.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "require-directory",
+      "version": "2.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "resedit",
+      "version": "1.7.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "resolve-alpn",
+      "version": "1.2.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "resolve-from",
+      "version": "5.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "responselike",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "retry",
+      "version": "0.12.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "rimraf",
+      "version": "2.6.3",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "roarr",
+      "version": "2.15.4",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "rollup",
+      "version": "4.63.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "safe-buffer",
+      "version": "5.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sanitize-filename",
+      "version": "1.6.4",
+      "license": "WTFPL OR ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sax",
+      "version": "1.6.1",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver-compare",
+      "version": "1.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver",
+      "version": "5.7.2",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver",
+      "version": "6.3.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver",
+      "version": "7.7.4",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver",
+      "version": "7.8.5",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "serialize-error",
+      "version": "7.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "siginfo",
+      "version": "2.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "signal-exit",
+      "version": "3.0.7",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "simple-update-notifier",
+      "version": "2.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "source-map-js",
+      "version": "1.2.1",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "source-map-support",
+      "version": "0.5.21",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "source-map",
+      "version": "0.6.1",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "source-map",
+      "version": "0.7.6",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sprintf-js",
+      "version": "1.1.3",
+      "license": "BSD-3-Clause",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "stackback",
+      "version": "0.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "stat-mode",
+      "version": "1.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "std-env",
+      "version": "3.10.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "string_decoder",
+      "version": "1.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "string-width",
+      "version": "4.2.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "strip-ansi",
+      "version": "6.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "strip-literal",
+      "version": "3.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sucrase",
+      "version": "3.35.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sumchecker",
+      "version": "3.0.1",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "supports-color",
+      "version": "7.2.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tar",
+      "version": "7.5.22",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "temp-file",
+      "version": "3.4.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "temp",
+      "version": "0.9.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "thenify-all",
+      "version": "1.6.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "thenify",
+      "version": "3.3.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tiny-async-pool",
+      "version": "1.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinybench",
+      "version": "2.9.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinyexec",
+      "version": "0.3.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinyglobby",
+      "version": "0.2.17",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinypool",
+      "version": "1.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinyrainbow",
+      "version": "2.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tinyspy",
+      "version": "4.0.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tmp-promise",
+      "version": "3.0.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "tmp",
+      "version": "0.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tree-kill",
+      "version": "1.2.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "truncate-utf8-bytes",
+      "version": "1.0.2",
+      "license": "WTFPL",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "ts-interface-checker",
+      "version": "0.1.13",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tslib",
+      "version": "2.8.1",
+      "license": "0BSD",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tsup",
+      "version": "8.5.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "type-fest",
+      "version": "0.13.1",
+      "license": "(MIT OR CC0-1.0)",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "license": "Apache-2.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ufo",
+      "version": "1.6.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "undici-types",
+      "version": "7.18.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "undici",
+      "version": "6.28.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "undici",
+      "version": "7.29.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "universalify",
+      "version": "0.1.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "universalify",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "unzipper",
+      "version": "0.12.5",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "utf8-byte-length",
+      "version": "1.0.5",
+      "license": "(WTFPL OR MIT)",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "util-deprecate",
+      "version": "1.0.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "vite-node",
+      "version": "3.2.4",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "vite",
+      "version": "7.3.6",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "vitest",
+      "version": "3.2.7",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "webcrypto-core",
+      "version": "1.9.2",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "which",
+      "version": "2.0.2",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "which",
+      "version": "5.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "which",
+      "version": "6.0.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "why-is-node-running",
+      "version": "2.3.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "wrap-ansi",
+      "version": "7.0.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "wrappy",
+      "version": "1.0.2",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "xmlbuilder",
+      "version": "15.1.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "y18n",
+      "version": "5.0.8",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yallist",
+      "version": "4.0.0",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yallist",
+      "version": "5.0.0",
+      "license": "BlueOak-1.0.0",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yargs-parser",
+      "version": "21.1.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yargs",
+      "version": "17.7.3",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yocto-queue",
+      "version": "0.1.0",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    }
+  ]
+}

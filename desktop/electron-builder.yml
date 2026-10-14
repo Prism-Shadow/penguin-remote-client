@@ -1,0 +1,62 @@
+appId: com.prismshadow.penguinremote
+productName: Penguin Remote
+directories:
+  output: ../dist/desktop
+  buildResources: build
+files:
+  - dist/**/*
+  - package.json
+extraResources:
+  - from: native
+    to: bin
+    filter:
+      - "**/*"
+  - from: build/icon.png
+    to: icon.png
+  - from: ../LICENSE
+    to: legal/LICENSE
+  - from: ../NOTICE
+    to: legal/NOTICE
+  - from: ../THIRD_PARTY_NOTICES.md
+    to: legal/THIRD_PARTY_NOTICES.md
+  - from: ../third_party/licenses
+    to: legal/third_party/licenses
+  - from: ../third_party/frp/LICENSE
+    to: legal/third_party/frp/LICENSE
+  - from: ../third_party/frp/REMOTE_CHANGES.md
+    to: legal/third_party/frp/REMOTE_CHANGES.md
+asar: true
+npmRebuild: false
+nodeGypRebuild: false
+
+win:
+  icon: build/icon.png
+  artifactName: penguin-remote-win-${arch}.${ext}
+  target:
+    - nsis
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+mac:
+  icon: build/icon-mac.png
+  category: public.app-category.utilities
+  artifactName: penguin-remote-mac-${arch}.${ext}
+  target:
+    - dmg
+    - zip
+
+linux:
+  icon: build/icons
+  category: Utility
+  executableName: penguin-remote
+  artifactName: penguin-remote-linux-${arch}.${ext}
+  target:
+    - AppImage
+    - deb
+
+deb:
+  maintainer: Prism Shadow

@@ -1,0 +1,670 @@
+<!doctype html>
+<!-- UI icon geometry adapted from Lucide/Feather; see THIRD_PARTY_NOTICES.md. -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Penguin Remote</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      letter-spacing: 0;
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-subtle: #f9fafb;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --text: #111827;
+      --text-soft: #4b5563;
+      --text-muted: #6b7280;
+      --primary: #111827;
+      --primary-hover: #374151;
+      --link: #0b57d0;
+      --success: #047857;
+      --warning: #b45309;
+      --danger: #b42318;
+      --focus: #9ca3af;
+      --button-text: #ffffff;
+      --notice-border: #fecaca;
+      --notice-bg: #fef2f2;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--bg); color: var(--text); }
+    button, input, select { font: inherit; letter-spacing: 0; }
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    .shell { display: flex; min-height: 100vh; flex-direction: column; }
+    .header { display: flex; min-height: 98px; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 22px 32px 18px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .identity { min-width: 0; }
+    .brand-line { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+    .brand-logo { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 8px; }
+    .brand-title { margin: 0; font-size: 18px; font-weight: 700; line-height: 24px; }
+    .account-state { display: flex; align-items: center; gap: 7px; margin: 8px 0 0 54px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
+    .state-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #9ca3af; }
+    .state-dot.online { background: var(--success); }
+    .service-line { display: flex; align-items: center; gap: 8px; margin: 6px 0 0 54px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
+    .service-line .state-dot { background: currentColor; }
+    .service-line.active { color: var(--success); }
+    .service-line.expired { color: var(--danger); }
+    .service-line.unknown { color: var(--warning); }
+    .service-line[hidden] { display: none; }
+    .renewal { display: inline-flex; min-height: 22px; align-items: center; padding: 1px 9px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--text-soft); font-size: 12px; text-decoration: none; }
+    .renewal:hover { background: var(--surface-subtle); color: var(--text); }
+    .renewal[hidden] { display: none; }
+    .service-state { display: inline-flex; min-height: 28px; align-items: center; gap: 7px; margin-top: 7px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-soft); font-size: 12px; white-space: nowrap; }
+    .header-actions { display: flex; align-items: flex-end; flex-direction: column; gap: 6px; }
+    .header-tools { display: flex; align-items: center; gap: 8px; }
+    .header-menu { position: relative; display: inline-flex; min-height: 32px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
+    .icon-button { display: inline-flex; width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; }
+    .icon-button:hover, .icon-button[aria-expanded="true"] { background: var(--surface); color: var(--link); }
+    .icon-button svg, .option-segment svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .header-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--surface) 82%, var(--border-strong)); }
+    .header-popover[hidden] { display: none; }
+    .header-popover::before { position: absolute; top: -6px; right: 10px; width: 10px; height: 10px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: var(--surface); content: ""; transform: rotate(45deg); }
+    .support-panel { width: min(220px, calc(100vw - 24px)); padding: 12px; text-align: center; }
+    .support-title, .preferences-title { display: block; margin: 0 0 8px; color: var(--text); font-size: 13px; font-weight: 800; line-height: 1.2; }
+    .support-qr { display: block; width: 100%; height: auto; border-radius: 6px; }
+    .support-panel p { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.35; }
+    .preferences-panel { width: min(246px, calc(100vw - 24px)); padding: 12px; }
+    .preference-row + .preference-row { margin-top: 12px; }
+    .preference-label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 12px; }
+    .option-segment { display: inline-flex; align-items: center; gap: 2px; min-height: 32px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
+    .option-segment button { display: inline-flex; min-width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); font-size: 12px; cursor: pointer; }
+    .option-segment button[aria-pressed="true"], .option-segment button:hover { background: var(--surface); color: var(--link); }
+    .content { width: 100%; flex: 1; padding: 26px 32px 32px; }
+    .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .metric { min-width: 0; padding: 18px 20px; }
+    .metric:first-child { padding-left: 0; }
+    .metric + .metric { border-left: 1px solid var(--border); }
+    .metric-label { color: var(--text-muted); font-size: 12px; }
+    .metric-value { margin-top: 7px; overflow: hidden; font-size: 16px; font-weight: 650; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
+    .metric-detail { margin-top: 2px; overflow: hidden; color: var(--text-muted); font-size: 12px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 26px 0 12px; }
+    .section-head h2 { margin: 0; font-size: 15px; line-height: 22px; }
+    .section-actions { display: flex; align-items: center; gap: 8px; }
+    .button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 6px 12px; border: 1px solid var(--primary); border-radius: 6px; background: var(--primary); color: var(--button-text); font-weight: 600; text-decoration: none; cursor: pointer; }
+    .button:hover { background: var(--primary-hover); }
+    .button.secondary { border-color: var(--border-strong); background: var(--surface); color: var(--text-soft); font-weight: 500; }
+    .button.secondary:hover { background: var(--surface-subtle); color: var(--text); }
+    .connection { display: grid; grid-template-columns: minmax(180px, 1fr) 34px minmax(220px, 1.25fr) auto; min-height: 94px; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+    .endpoint { min-width: 0; }
+    .endpoint-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; }
+    .endpoint-value { margin-top: 7px; overflow: hidden; color: var(--text-soft); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+    .endpoint-value a { color: var(--link); text-decoration: none; }
+    .endpoint-value a:hover { text-decoration: underline; }
+    .route-arrow { color: #9ca3af; font-size: 20px; text-align: center; }
+    .switch-wrap { display: flex; align-items: center; gap: 10px; }
+    .switch-label { min-width: 42px; color: var(--text-soft); font-size: 12px; text-align: right; }
+    .switch { position: relative; width: 38px; height: 22px; flex: 0 0 38px; }
+    .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .switch-track { position: absolute; inset: 0; border: 1px solid #9ca3af; border-radius: 999px; background: #d1d5db; cursor: pointer; transition: background-color .16s ease, border-color .16s ease; }
+    .switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,.18); transition: transform .16s ease; }
+    .switch input:checked + .switch-track { border-color: var(--success); background: var(--success); }
+    .switch input:checked + .switch-track::after { transform: translateX(16px); }
+    .switch input:focus-visible + .switch-track { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .switch input:disabled + .switch-track { cursor: not-allowed; opacity: .45; }
+    .notice { display: none; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--notice-border); border-radius: 6px; background: var(--notice-bg); color: var(--danger); font-size: 12px; line-height: 18px; }
+    .notice.visible { display: block; }
+    .notice.info { border-color: var(--border-strong); background: var(--surface-subtle); color: var(--text-soft); }
+    details { margin-top: 20px; border-top: 1px solid var(--border); }
+    summary { padding: 16px 0; color: var(--text-soft); font-size: 13px; font-weight: 600; cursor: pointer; }
+    .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-bottom: 18px; }
+    label { display: block; color: var(--text-soft); font-size: 12px; font-weight: 600; }
+    select, input[type="text"] { width: 100%; height: 36px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); }
+    input[type="text"]::placeholder { color: #9ca3af; }
+    .diagnostics { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-subtle); font-size: 12px; }
+    .diagnostics dt { color: var(--text-muted); }
+    .diagnostics dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--text-soft); }
+    @media (max-width: 760px) {
+      .header { min-height: 88px; padding: 16px 18px 14px; }
+      .content { padding: 20px 18px 24px; }
+      .overview { grid-template-columns: 1fr; }
+      .metric { padding: 14px 0; }
+      .metric + .metric { border-top: 1px solid var(--border); border-left: 0; }
+      .connection { grid-template-columns: minmax(0, 1fr) auto; }
+      .route-arrow { display: none; }
+      .connection .endpoint:nth-of-type(2) { grid-column: 1 / -1; }
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .header { gap: 12px; }
+      .header-actions { flex: 0 0 auto; }
+      .brand-logo { width: 36px; height: 36px; flex-basis: 36px; }
+      .brand-title { font-size: 16px; }
+      .account-state { margin-left: 48px; }
+      .service-state { padding: 3px 8px; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .section-actions { width: 100%; }
+      .section-actions .button { flex: 1; }
+      .connection { grid-template-columns: 1fr; }
+      .connection .endpoint:nth-of-type(2) { grid-column: auto; }
+      .switch-wrap { justify-content: flex-end; }
+    }
+    :root[data-theme="dark"] { color-scheme: dark; --bg: #000000; --surface: #0d0d0d; --surface-subtle: #171717; --border: #262626; --border-strong: #404040; --text: #f3f4f6; --text-soft: #d1d5db; --text-muted: #9ca3af; --primary: #f3f4f6; --primary-hover: #ffffff; --link: #8ab4f8; --focus: #6b7280; --button-text: #111827; --notice-border: #7f1d1d; --notice-bg: #450a0a; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) { color-scheme: dark; --bg: #000000; --surface: #0d0d0d; --surface-subtle: #171717; --border: #262626; --border-strong: #404040; --text: #f3f4f6; --text-soft: #d1d5db; --text-muted: #9ca3af; --primary: #f3f4f6; --primary-hover: #ffffff; --link: #8ab4f8; --focus: #6b7280; --button-text: #111827; --notice-border: #7f1d1d; --notice-bg: #450a0a; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="identity">
+      <div class="brand-line">
+        <img class="brand-logo" src="/assets/penguin-logo.svg" alt="Penguin">
+        <h1 class="brand-title">Penguin Remote</h1>
+      </div>
+      <div class="account-state"><span id="accountDot" class="state-dot"></span><span id="accountStatus" data-i18n="checkingLogin">正在检查登录状态</span></div>
+      <div id="serviceLine" class="service-line"><span class="state-dot"></span><span id="subscriptionStatus" data-i18n="checkingService">正在检查服务状态</span><a id="renewalLink" class="renewal" target="_blank" rel="noreferrer" hidden></a></div>
+      <div id="slotLine" class="service-line" hidden><span class="state-dot"></span><span id="slotStatus"></span></div>
+    </div>
+    <div class="header-actions">
+      <div class="header-tools">
+        <div class="header-menu" id="supportMenu">
+          <button class="icon-button" id="supportButton" type="button" aria-controls="supportPanel" aria-expanded="false" aria-haspopup="dialog" aria-label="客服微信群" data-i18n-aria="supportGroup" title="客服微信群" data-i18n-title="supportGroup">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
+          </button>
+          <div class="header-popover support-panel" id="supportPanel" role="dialog" aria-label="客服微信群" data-i18n-aria="supportGroup" hidden>
+            <strong class="support-title" data-i18n="supportGroup">客服微信群</strong>
+            <img class="support-qr" src="/assets/wechat-support-qr.png" alt="客服微信群二维码" data-i18n-alt="supportQrAlt" width="400" height="400" decoding="async">
+            <p data-i18n="supportQrHint">微信扫码加入客服群</p>
+          </div>
+        </div>
+        <div class="header-menu" id="preferencesMenu">
+          <button class="icon-button" id="preferencesButton" type="button" aria-controls="preferencesPanel" aria-expanded="false" aria-haspopup="dialog" aria-label="偏好设置" data-i18n-aria="preferences" title="偏好设置" data-i18n-title="preferences">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          </button>
+          <div class="header-popover preferences-panel" id="preferencesPanel" role="dialog" aria-label="偏好设置" data-i18n-aria="preferences" hidden>
+            <strong class="preferences-title" data-i18n="preferences">偏好设置</strong>
+            <div class="preference-row">
+              <span class="preference-label" id="themeLabel" data-i18n="theme">主题</span>
+              <div class="option-segment" role="group" aria-labelledby="themeLabel">
+                <button id="themeSystem" type="button" aria-pressed="true" aria-label="跟随系统" data-i18n-aria="systemTheme" title="跟随系统" data-i18n-title="systemTheme"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+                <button id="themeLight" type="button" aria-pressed="false" aria-label="浅色" data-i18n-aria="lightTheme" title="浅色" data-i18n-title="lightTheme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+                <button id="themeDark" type="button" aria-pressed="false" aria-label="深色" data-i18n-aria="darkTheme" title="深色" data-i18n-title="darkTheme"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg></button>
+              </div>
+            </div>
+            <div class="preference-row">
+              <span class="preference-label" id="languageLabel" data-i18n="language">语言</span>
+              <div class="option-segment" role="group" aria-labelledby="languageLabel">
+                <button id="langZh" type="button" lang="zh-CN" aria-pressed="true" aria-label="中文" title="中文">中</button>
+                <button id="langEn" type="button" lang="en" aria-pressed="false" aria-label="English" title="English">EN</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="service-state"><span id="serviceDot" class="state-dot"></span><span id="serviceState" data-i18n="runnerStopped">未开启</span></div>
+    </div>
+  </header>
+  <main class="content">
+    <section class="overview" aria-label="远程访问概况" data-i18n-aria="overview">
+      <div class="metric"><div class="metric-label" data-i18n="localHarness">本机 Harness</div><div id="harnessMetric" class="metric-value" data-i18n="scanning">正在扫描</div><div id="harnessMetricDetail" class="metric-detail" data-i18n="checkingLocal">检查本机服务</div></div>
+      <div class="metric"><div class="metric-label" data-i18n="remoteAccess">远程访问</div><div id="runnerMetric" class="metric-value" data-i18n="runnerStopped">未开启</div><div id="authStatus" class="metric-detail" data-i18n="waitingAuth">等待本机认证</div></div>
+      <div class="metric"><div class="metric-label" data-i18n="publicEntry">公网入口</div><div id="publicMetric" class="metric-value" data-i18n="unassigned">未分配</div><div id="deviceId" class="metric-detail" data-i18n="assignedAfterLogin">开启后分配</div></div>
+    </section>
+    <div class="section-head">
+      <h2 data-i18n="connection">连接</h2>
+      <div class="section-actions"><button id="rescan" class="button secondary" type="button" data-i18n="rescan">重新扫描</button><button id="login" class="button" type="button" data-i18n="login">登录 Penguin Go</button></div>
+    </div>
+    <section class="connection" aria-label="Harness 远程连接" data-i18n-aria="harnessConnection">
+      <div class="endpoint"><div class="endpoint-title"><span id="harnessDot" class="state-dot"></span><span>Penguin Harness</span></div><div id="localUrl" class="endpoint-value" data-i18n="scanningLocal">正在扫描本机服务</div></div>
+      <div class="route-arrow" aria-hidden="true">→</div>
+      <div class="endpoint"><div class="endpoint-title" data-i18n="publicAddress">公网地址</div><div id="publicUrl" class="endpoint-value" data-i18n="assignedAfterLogin">开启后分配</div></div>
+      <div class="switch-wrap"><span id="switchLabel" class="switch-label" data-i18n="switchStopped">已停止</span><label class="switch" aria-label="远程访问" data-i18n-aria="remoteAccess"><input id="remoteToggle" type="checkbox"><span class="switch-track"></span></label></div>
+    </section>
+    <div id="lastError" class="notice" role="alert"></div>
+    <details>
+      <summary data-i18n="advanced">高级设置与诊断</summary>
+      <div class="settings-grid">
+        <label for="manualLocalUrl"><span data-i18n="harnessAddress">Harness 地址</span><input id="manualLocalUrl" type="text" placeholder="自动发现时留空" data-i18n-placeholder="manualLocalPlaceholder"></label>
+        <label for="manualDataRoot"><span data-i18n="harnessData">Harness 数据目录</span><input id="manualDataRoot" type="text" placeholder="自动检查常见数据目录" data-i18n-placeholder="manualDataPlaceholder"></label>
+      </div>
+      <dl class="diagnostics"><dt>Penguin Go</dt><dd id="penguinGoUrl"></dd><dt data-i18n="localAuth">本机认证</dt><dd id="authDiagnostic" data-i18n="waitingAuth">等待启动时验证</dd><dt data-i18n="connectionStatus">连接状态</dt><dd id="runnerStatus" data-i18n="runnerStopped">未开启</dd><dt data-i18n="subscriptionStatusTitle">订阅状态</dt><dd id="subscriptionDiagnostic" data-i18n="checkingService">正在检查</dd><dt data-i18n="discoveryResult">发现结果</dt><dd id="harnessSummary" data-i18n="scanning">正在扫描</dd></dl>
+<div class="section-actions"><button class="button secondary" id="refreshSubscription" data-i18n="subscriptionRefresh"></button><button class="button secondary" id="retryCancellation" data-i18n="cancelRetry" hidden></button></div>
+</details>
+  </main>
+</div>
+<script>
+const translations = {
+  zh: {
+    cancelRetry:"重试上次连接清理",
+    cancel_pending:"正在处理上次连接，确认取消后才会开启新连接。您可以随时停止。",
+    cancel_storage_failed:"无法保存连接取消记录，已阻止新连接。请检查配置目录是否可写。",
+    cancel_not_supported:"服务器暂不支持精确取消，已阻止新连接。请联系管理员升级服务。",
+    cancel_auth_required:"上次连接的取消凭证已失效，已阻止新连接。请登录对应账号刷新设备凭证。",
+    cancel_rejected:"服务器拒绝取消上次连接，已阻止新连接。请联系管理员。",
+    acquire_cancelled:"本次开启请求已取消，请主动再次开启。",
+    device_credential_required:"设备访问凭证缺失，请重新登录。",
+    plugin_secret_not_configured:"服务器鉴权尚未配置，连接将自动重试。请联系管理员。",
+    grant_key_not_configured:"服务器授权密钥尚未配置，连接将自动重试。请联系管理员。",
+    transport_not_configured:"服务器连接尚未配置，连接将自动重试。请联系管理员。",
+    product_access_denied:"当前账号尚未获准使用 Remote，请联系管理员。",
+    invalid_harness_url:"请输入不含凭证或参数的本机 Harness 根地址。",
+    invalid_identifier:"连接授权标识无效，请停止后重新开启；如持续出现，请联系客服。",
+    invalid_sequence:"连接授权版本无效，请停止后重新开启；如持续出现，请联系客服。",
+    invalid_operation:"服务器鉴权协议不匹配，请联系客服。",
+subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更新",confirming:"正在确认",connecting:"正在连接",connected:"已连接",proxy_wait:"正在接管",reconnecting:"正在重连",stopped:"已停止",grant_superseded:"已被接管",subscription_expired:"订阅到期",grant_revoked:"连接授权已释放，请主动开启以重新授权。",device_revoked:"设备身份已撤销，请重新登录。",device_credential_invalid:"设备访问凭证已失效，请重新登录。",protocol_upgrade_required:"升级后请先重新登录 Penguin Go。旧授权不能用于新版连接。",subscription_required:"请订阅 Remote 后再开启。",slot_over_quota:"当前槽位超过订阅额度，请恢复额度后刷新。",grant_credential_invalid:"连接授权校验失败，请主动重新开启。",proxy_mismatch:"服务器代理配置不匹配，请联系客服。",plugin_secret_invalid:"服务器鉴权配置有误，请联系客服。",service_unavailable:"暂时无法连接，正在自动重试。您可以随时停止。",harness_unavailable:"无法连接本地 Harness，请启动后重试。",save_failed:"无法保存设置，请检查配置目录是否可写。",login_failed:"登录未完成，请重新登录。",grant_key_rotated:"服务器授权密钥已更新，请主动重新开启。",request_id_conflict:"开启请求发生冲突，请停止后重新开启。",invalid_request:"服务器返回的授权不完整，请联系客服。",
+    checkingLogin:'正在检查登录状态', checkingService:'正在检查服务状态', overview:'远程访问概况',
+    supportGroup:'客服微信群', supportQrAlt:'客服微信群二维码', supportQrHint:'微信扫码加入客服群',
+    preferences:'偏好设置', theme:'主题', language:'语言', systemTheme:'跟随系统', lightTheme:'浅色', darkTheme:'深色',
+    localHarness:'本机 Harness', remoteAccess:'远程访问', publicEntry:'公网入口', publicAddress:'公网地址',
+    scanning:'正在扫描', checkingLocal:'检查本机服务', waitingAuth:'开启时验证本机连接',
+    unassigned:'未分配', assignedAfterLogin:'开启后分配', connection:'连接', rescan:'重新扫描',
+    login:'登录 Penguin Go', relogin:'重新登录', harnessConnection:'Harness 远程连接',
+    scanningLocal:'正在扫描本机服务', switchStopped:'已停止', switchRunning:'运行中',
+    switchConnecting:'连接中', switchReconnecting:'重连中',
+    switchRecovering:'恢复中', unavailable:'不可用', advanced:'高级设置与诊断',
+    harnessAddress:'Harness 地址', harnessData:'Harness 数据目录', localAuth:'本机认证',
+    connectionStatus:'连接状态', subscriptionStatusTitle:'订阅状态', discoveryResult:'发现结果',
+    authReady:'本机连接已就绪', authError:'无法连接本机 Harness', authUnchecked:'开启时验证本机连接',
+    runnerStarting:'正在启动', runnerRunning:'已开启', runnerStopping:'正在停止',
+    runnerRecovering:'正在恢复连接', runnerError:'连接遇到问题', runnerStopped:'未开启',
+    runnerConnected:'已连接', runnerConnecting:'正在连接', runnerReconnecting:'正在重连',
+    loggedIn:'已登录 Penguin Go', loggedInName:'已登录 · {name}', loggedOut:'未登录 Penguin Go',
+    activeUntil:'有效期至 {date}', expiredOn:'已于 {date} 到期', subscriptionExpired:'订阅已到期',
+    subscriptionNone:'Remote 服务尚未开通', subscriptionUnknown:'订阅信息待更新', signInToCheckService:'登录后查看服务状态',
+    renew:'续约', subscribe:'前往开通', slotAndMax:'当前设备 {slot} / 可同时连接 {max} 台',
+    slotOnly:'当前设备 {slot}', maxOnly:'可同时连接 {max} 台',
+    harnessFound:'已发现', harnessNotFound:'未发现', startHarness:'请启动 Penguin Harness',
+    kindDesktop:'桌面端', kindDevWeb:'开发版前端', kindDevServer:'开发版服务', kindCliWeb:'Penguin Web',
+    noLocalHarness:'未发现本机 Harness', noHarnessSummary:'未发现本机 Penguin Harness',
+    assigned:'已分配', deviceAfterLogin:'登录后分配设备',
+    manualLocalPlaceholder:'例如 http://localhost:7364', manualDataPlaceholder:'自动检查常见数据目录',
+    recoveringNotice:'连接暂时中断，正在等待网络并重连原授权；恢复成功后会自动重新开启。',
+    connectingNotice:'正在连接公网服务器，连接成功后即可通过公网地址访问。',
+    reconnectingNotice:'公网连接暂时中断，正在自动重连；无需重新登录。',
+    errorLeaseExpired:'连接已中断。请重新开启远程访问；无需重新登录。',
+    errorTakenOver:'这条远程连接已被其他设备接管。如需接管回来，请主动再次开启。',
+    errorSubscriptionExpired:'Remote 服务已到期。续订后刷新订阅信息即可恢复资格。',
+    errorSubscriptionInactive:'当前账号尚未开通 Remote 服务，或服务目前不可用。',
+    errorSubscriptionUnknown:'订阅信息待更新，请刷新订阅信息。',
+    errorServerOld:'Penguin Go 暂不支持当前连接方式，请联系管理员更新服务。',
+    errorLeaseMissing:'连接授权信息已失效，请重新登录 Penguin Go。',
+    errorSave:'无法保存连接状态，请检查本机配置目录是否可写。',
+    errorLogin:'登录未完成，请重新尝试登录 Penguin Go。',
+    errorHarness:'无法连接本机 Harness，请确认它已启动后重试。',
+    errorConfirm:'暂时无法确认远程连接授权，请检查网络后重试。',
+    errorNetwork:'连接暂时不可用，请检查网络后重试。',
+    errorGeneric:'操作未能完成，请稍后重试；如持续出现，请重新登录。'
+  },
+  en: {
+    cancelRetry:"Retry previous connection cleanup",
+    cancel_pending:"Finishing the previous connection. New access waits for confirmed cancellation; you can stop at any time.",
+    cancel_storage_failed:"Cannot save cancellation records. New access is blocked. Check configuration directory permissions.",
+    cancel_not_supported:"The server does not support precise cancellation. New access is blocked. Ask an administrator to upgrade it.",
+    cancel_auth_required:"Credentials for canceling the previous connection are invalid. New access is blocked. Sign in to its account to refresh device credentials.",
+    cancel_rejected:"The server refused to cancel the previous connection. New access is blocked. Contact an administrator.",
+    acquire_cancelled:"This start request was canceled. Turn access on again when ready.",
+    device_credential_required:"Device access is missing. Sign in again.",
+    plugin_secret_not_configured:"Server authorization is not configured. Retrying; contact an administrator.",
+    grant_key_not_configured:"Server authorization keys are not configured. Retrying; contact an administrator.",
+    transport_not_configured:"Server transport is not configured. Retrying; contact an administrator.",
+    product_access_denied:"This account cannot use Remote yet. Contact an administrator.",
+    invalid_harness_url:"Enter the local Harness root address without credentials or parameters.",
+    invalid_identifier:"Connection authorization ID is invalid. Stop and turn access on again; contact support if it persists.",
+    invalid_sequence:"Connection authorization version is invalid. Stop and turn access on again; contact support if it persists.",
+    invalid_operation:"Server authorization protocol does not match. Contact support.",
+subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription information needs updating",confirming:"Confirming",connecting:"Connecting",connected:"Connected",proxy_wait:"Taking over",reconnecting:"Reconnecting",stopped:"Stopped",grant_superseded:"Taken over",subscription_expired:"Subscription expired",grant_revoked:"Connection authorization was released. Turn on access to authorize again.",device_revoked:"Device identity was revoked. Sign in again.",device_credential_invalid:"Device access expired. Sign in again.",protocol_upgrade_required:"Sign in to Penguin Go after upgrading. Previous authorization cannot be used.",subscription_required:"Subscribe to Remote before turning on access.",slot_over_quota:"This slot exceeds your subscription allowance. Restore the allowance and refresh.",grant_credential_invalid:"Connection authorization failed. Turn access on again.",proxy_mismatch:"Server proxy configuration does not match. Contact support.",plugin_secret_invalid:"Server authorization is misconfigured. Contact support.",service_unavailable:"Temporarily unavailable. Retrying automatically; you can stop at any time.",harness_unavailable:"Cannot connect to local Harness. Start it and retry.",save_failed:"Cannot save settings. Check configuration directory permissions.",login_failed:"Sign-in did not complete. Try again.",grant_key_rotated:"Server authorization changed. Turn access on again.",request_id_conflict:"Start request conflicts. Stop and turn access on again.",invalid_request:"The server returned incomplete authorization. Contact support.",
+    checkingLogin:'Checking sign-in', checkingService:'Checking subscription', overview:'Remote access overview',
+    supportGroup:'Support', supportQrAlt:'Support WeChat group QR code', supportQrHint:'Scan with WeChat to join the support group',
+    preferences:'Preferences', theme:'Theme', language:'Language', systemTheme:'System', lightTheme:'Light', darkTheme:'Dark',
+    localHarness:'Local Harness', remoteAccess:'Remote access', publicEntry:'Public access', publicAddress:'Public address',
+    scanning:'Scanning', checkingLocal:'Checking local service', waitingAuth:'Local access is checked when starting',
+    unassigned:'Not assigned', assignedAfterLogin:'Assigned when access is turned on', connection:'Connection', rescan:'Scan again',
+    login:'Sign in to Penguin Go', relogin:'Sign in again', harnessConnection:'Harness remote connection',
+    scanningLocal:'Scanning for local Harness', switchStopped:'Stopped', switchRunning:'Running',
+    switchConnecting:'Connecting', switchReconnecting:'Reconnecting',
+    switchRecovering:'Restoring', unavailable:'Unavailable', advanced:'Advanced settings and diagnostics',
+    harnessAddress:'Harness address', harnessData:'Harness data directory', localAuth:'Local authentication',
+    connectionStatus:'Connection status', subscriptionStatusTitle:'Subscription', discoveryResult:'Discovery',
+    authReady:'Local connection is ready', authError:'Cannot connect to local Harness', authUnchecked:'Local access is checked when starting',
+    runnerStarting:'Starting', runnerRunning:'On', runnerStopping:'Stopping',
+    runnerRecovering:'Restoring connection', runnerError:'Connection issue', runnerStopped:'Off',
+    runnerConnected:'Connected', runnerConnecting:'Connecting', runnerReconnecting:'Reconnecting',
+    loggedIn:'Signed in to Penguin Go', loggedInName:'Signed in · {name}', loggedOut:'Not signed in to Penguin Go',
+    activeUntil:'Active until {date}', expiredOn:'Expired on {date}', subscriptionExpired:'Subscription expired',
+    subscriptionNone:'Remote service is not enabled', subscriptionUnknown:'Subscription information needs updating', signInToCheckService:'Sign in to check your subscription',
+    renew:'Renew', subscribe:'Open subscription page', slotAndMax:'Device {slot} / {max} simultaneous connections',
+    slotOnly:'Device {slot}', maxOnly:'Up to {max} simultaneous connections',
+    harnessFound:'Found', harnessNotFound:'Not found', startHarness:'Start Penguin Harness',
+    kindDesktop:'Desktop', kindDevWeb:'Development web', kindDevServer:'Development server', kindCliWeb:'Penguin Web',
+    noLocalHarness:'Local Harness not found', noHarnessSummary:'Local Penguin Harness not found',
+    assigned:'Assigned', deviceAfterLogin:'Device assigned after sign-in',
+    manualLocalPlaceholder:'For example http://localhost:7364', manualDataPlaceholder:'Common data directories are checked automatically',
+    recoveringNotice:'Connection interrupted. Waiting for the network and reconnecting with the original authorization; access will turn back on automatically.',
+    connectingNotice:'Connecting to the public server. The public address will work once connected.',
+    reconnectingNotice:'The public connection was interrupted and is reconnecting automatically. You do not need to sign in again.',
+    errorLeaseExpired:'Connection stopped. Turn remote access on again; you do not need to sign in again.',
+    errorTakenOver:'Remote access is now active on another device. Turn access on again to take over here.',
+    errorSubscriptionExpired:'Your Remote subscription has expired. Renew it, then refresh subscription information.',
+    errorSubscriptionInactive:'Remote service is not enabled or is currently unavailable for this account.',
+    errorSubscriptionUnknown:'Subscription information needs updating. Refresh it.',
+    errorServerOld:'Penguin Go does not support this connection method yet. Ask an administrator to update the service.',
+    errorLeaseMissing:'Connection authorization is no longer available. Sign in to Penguin Go again.',
+    errorSave:'Could not save the connection state. Check that the local configuration directory is writable.',
+    errorLogin:'Sign-in was not completed. Try signing in to Penguin Go again.',
+    errorHarness:'Cannot connect to local Harness. Start it and try again.',
+    errorConfirm:'Could not confirm remote access. Check your network and try again.',
+    errorNetwork:'Connection is temporarily unavailable. Check your network and try again.',
+    errorGeneric:'Could not complete this action. Try again shortly, or sign in again if it continues.'
+  }
+};
+
+let language = 'zh';
+let languageInitialized = false;
+let themeMode = 'system';
+let themeInitialized = false;
+let currentStatus = null;
+let actionPending = false;
+
+function t(key, values = {}) {
+  const template = translations[language][key] || translations.zh[key] || key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ''));
+}
+
+function setLanguage(next) {
+  language = next === 'en' ? 'en' : 'zh';
+  document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+  document.getElementById('langZh').setAttribute('aria-pressed', String(language === 'zh'));
+  document.getElementById('langEn').setAttribute('aria-pressed', String(language === 'en'));
+  document.querySelectorAll('[data-i18n]').forEach(element => { element.textContent = t(element.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAria)); });
+  document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
+  document.querySelectorAll('[data-i18n-alt]').forEach(element => { element.alt = t(element.dataset.i18nAlt); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+  if (currentStatus) render(currentStatus);
+}
+
+function setTheme(next) {
+  themeMode = next === 'light' || next === 'dark' ? next : 'system';
+  if (themeMode === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = themeMode;
+  for (const [mode, id] of [['system', 'themeSystem'], ['light', 'themeLight'], ['dark', 'themeDark']]) {
+    document.getElementById(id).setAttribute('aria-pressed', String(themeMode === mode));
+  }
+}
+
+async function api(path, options) {
+  const res = await fetch(path, options);
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || res.statusText);
+  return text ? JSON.parse(text) : {};
+}
+
+function authLabel(status) {
+  return t(({ready:'authReady', error:'authError', unchecked:'authUnchecked'})[status] || 'authUnchecked');
+}
+
+function runnerLabel(status) {
+  return t(({starting:'runnerStarting', running:'runnerRunning', stopping:'runnerStopping', recovering:'runnerRecovering', error:'runnerError', stopped:'runnerStopped'})[status] || 'runnerStopped');
+}
+
+function connectionLabel(s) {
+ if (translations[language][s.connectionStatus]) return t(s.connectionStatus);
+ if (translations[language][s.runnerStatus]) return t(s.runnerStatus);
+  if (s.runnerStatus !== 'running') return runnerLabel(s.runnerStatus);
+  return t(({connected:'runnerConnected', connecting:'runnerConnecting', reconnecting:'runnerReconnecting'})[s.connectionStatus] || 'runnerConnecting');
+}
+
+function harnessKind(kind) {
+  const key = ({desktop:'kindDesktop', 'pnpm-dev-web':'kindDevWeb', 'pnpm-dev':'kindDevServer', 'cli-web':'kindCliWeb'})[kind];
+  return key ? t(key) : kind;
+}
+
+// Returns '' for anything that is not a usable timestamp so callers can fail
+// closed instead of rendering "Invalid Date".
+function formatLocal(iso) {
+  if (!iso) return '';
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return '';
+  const pad = value => String(value).padStart(2, '0');
+  return at.getFullYear() + '-' + pad(at.getMonth() + 1) + '-' + pad(at.getDate()) + ' ' + pad(at.getHours()) + ':' + pad(at.getMinutes());
+}
+
+// A cached deadline only makes the displayed information pending refresh.
+// Expired is displayed only after an explicit server subscription result.
+function subscriptionState(s) {
+  const status = s.entitlementStatus || 'unknown';
+  const expiresAt = s.expiresAt || '';
+  if (status !== 'active') return {status: status, expiresAt: expiresAt};
+  const at = new Date(expiresAt);
+  if (!expiresAt || Number.isNaN(at.getTime())) return {status: 'unknown', expiresAt: ''};
+  if (at.getTime() <= Date.now()) return {status: 'unknown', expiresAt: expiresAt};
+  return {status: 'active', expiresAt: expiresAt};
+}
+
+function subscriptionLabel(sub) {
+  if (sub.status === 'active') return t('activeUntil', {date: formatLocal(sub.expiresAt)});
+  if (sub.status === 'expired') return sub.expiresAt ? t('expiredOn', {date: formatLocal(sub.expiresAt)}) : t('subscriptionExpired');
+  if (sub.status === 'none') return t('subscriptionNone');
+  return t('subscriptionUnknown');
+}
+
+// The concurrency slot this installation occupies. It is shown verbatim as
+// Penguin Go reported it, and only while a subscription is active: a lapsed
+// account holds no slot, so there is nothing to report.
+function slotLabel(s, subscription) {
+  if (subscription.status !== 'active') return '';
+  const slot = Number.isInteger(s.slotIndex) && s.slotIndex >= 0 ? s.slotIndex : null;
+  const max = Number.isInteger(s.maxConcurrentTunnels) && s.maxConcurrentTunnels > 0 ? s.maxConcurrentTunnels : null;
+  if (slot !== null && max !== null) return t('slotAndMax', {slot, max});
+  if (slot !== null) return t('slotOnly', {slot});
+  if (max !== null) return t('maxOnly', {max});
+  return '';
+}
+
+function legacyFriendlyError(raw) {
+  const message = String(raw || '').toLowerCase();
+  if (!message) return '';
+  if (message.includes('接管') || message.includes('superseded')) return t('errorTakenOver');
+  if (message.includes('subscription expired')) return t('errorSubscriptionExpired');
+  if (message.includes('subscription is not active') || message.includes('not enabled')) return t('errorSubscriptionInactive');
+  if (message.includes('subscription state is unknown')) return t('errorSubscriptionUnknown');
+  if (message.includes('lease protocol')) return t('errorServerOld');
+  if (message.includes('lease expired')) return t('errorLeaseExpired');
+  if (message.includes('no remote slot lease') || message.includes('lease is stored')) return t('errorLeaseMissing');
+  if (message.includes('could not save')) return t('errorSave');
+  if (message.includes('authorization failed') || message.includes('callback') || message.includes('exchange failed')) return t('errorLogin');
+  if (message.includes('local harness') || message.includes('remote session') || message.includes('harness authorization')) return t('errorHarness');
+  if (message.includes('confirm') || message.includes('renew')) return t('errorConfirm');
+  if (message.includes('fetch') || message.includes('network') || message.includes('timeout')) return t('errorNetwork');
+  return t('errorGeneric');
+}
+
+function friendlyError(value) {const key=String(value||'');return !key?'':translations[language][key]?t(key):legacyFriendlyError(value);}
+async function refresh() {
+  try {
+    const status = await api('/api/status');
+    if (!languageInitialized) {
+      languageInitialized = true;
+      setLanguage(status.language);
+    }
+    if (!themeInitialized) {
+      themeInitialized = true;
+      setTheme(status.theme);
+    }
+    render(status);
+  } catch (err) {
+    showError(err);
+  }
+}
+
+function render(s) {
+  currentStatus = s;
+  const loggedIn = Boolean(s.loggedIn);
+  const running = s.runnerStatus === 'running';
+  const recovering = s.runnerStatus === 'recovering';
+  const connected = running && s.connectionStatus === 'connected';
+  const subscription = subscriptionState(s);
+  const subscriptionActive = subscription.status === 'active';
+  const harnesses = s.harnesses || [];
+  const currentHarness = harnesses.find(h => h.url === s.localUrl) || harnesses[0];
+
+  document.getElementById('penguinGoUrl').textContent = s.penguinGoUrl || '';
+  document.getElementById('accountStatus').textContent = loggedIn ? (s.userName ? t('loggedInName', {name: s.userName}) : t('loggedIn')) : t('loggedOut');
+  document.getElementById('accountDot').classList.toggle('online', loggedIn);
+  document.getElementById('login').textContent = t(loggedIn ? 'relogin' : 'login');
+
+  // Service status sits under the title and the login state, and only offers a
+  // renewal link when Penguin Go actually handed us one.
+  const serviceLine = document.getElementById('serviceLine');
+  serviceLine.className = 'service-line ' + (loggedIn ? subscription.status : 'signed-out');
+  const subscriptionText = loggedIn ? (s.entitlementStatus==='unknown'?t('subscriptionPending'):subscriptionLabel(subscription)) : t('signInToCheckService');
+  document.getElementById('subscriptionStatus').textContent = subscriptionText;
+  document.getElementById('subscriptionDiagnostic').textContent = subscriptionText;
+  const renewal = document.getElementById('renewalLink');
+  const renewalUrl = String(s.renewalUrl || '').trim();
+  const canRenew = renewalUrl !== '' && (subscription.status === 'expired' || subscription.status === 'none');
+  renewal.hidden = !canRenew;
+  if (canRenew) {
+    renewal.href = renewalUrl;
+    renewal.textContent = t(subscription.status === 'expired' ? 'renew' : 'subscribe');
+  }
+
+  const slot = slotLabel(s, subscription);
+  document.getElementById('slotLine').hidden = slot === '';
+  document.getElementById('slotStatus').textContent = slot;
+
+  document.getElementById('serviceState').textContent = connectionLabel(s);
+  document.getElementById('serviceDot').classList.toggle('online', connected);
+  document.getElementById('runnerMetric').textContent = connectionLabel(s);
+  document.getElementById('authStatus').textContent = authLabel(s.authStatus);
+  document.getElementById('runnerStatus').textContent = connectionLabel(s);
+  document.getElementById('authDiagnostic').textContent = authLabel(s.authStatus);
+
+  document.getElementById('harnessMetric').textContent = t(s.harnessFound ? 'harnessFound' : 'harnessNotFound');
+  document.getElementById('harnessMetricDetail').textContent = currentHarness ? harnessKind(currentHarness.kind) : t('startHarness');
+  document.getElementById('harnessDot').classList.toggle('online', Boolean(s.harnessFound));
+  document.getElementById('localUrl').textContent = s.localUrl || t('noLocalHarness');
+  document.getElementById('manualLocalUrl').placeholder = s.localUrl || t('manualLocalPlaceholder');
+  document.getElementById('manualDataRoot').placeholder = s.dataRoot || t('manualDataPlaceholder');
+  document.getElementById('harnessSummary').textContent = harnesses.length ? harnesses.map(h => harnessKind(h.kind) + ' ' + h.url).join(language === 'zh' ? '；' : '; ') : t('noHarnessSummary');
+
+  document.getElementById('publicMetric').textContent = t(s.publicUrl ? 'assigned' : 'unassigned');
+  document.getElementById('deviceId').textContent = s.deviceId || t('deviceAfterLogin');
+  document.getElementById('publicUrl').innerHTML = s.publicUrl ? '<a href="' + escapeHtml(s.publicUrl) + '" target="_blank" rel="noreferrer">' + escapeHtml(s.publicUrl) + '</a>' : t('assignedAfterLogin');
+
+  const toggle = document.getElementById('remoteToggle');
+  const canStart = loggedIn;
+  toggle.checked = Boolean(s.desired);
+  toggle.disabled = actionPending || (!s.desired && (!loggedIn || !s.harnessFound));
+  document.getElementById('switchLabel').textContent = s.desired ? connectionLabel(s) : t(canStart?'switchStopped':'unavailable');
+  document.getElementById('retryCancellation').hidden = !s.cancelPending;
+
+  const error = document.getElementById('lastError');
+  const retryWarning = String(s.lastError || '').startsWith('Remote slot lease renewal failed, retrying in ');
+  const connectionNotice = running && !connected && (!s.lastError || retryWarning);
+  error.textContent = recovering ? t('recoveringNotice') : connectionNotice ? t(s.connectionStatus === 'reconnecting' ? 'reconnectingNotice' : 'connectingNotice') : friendlyError(s.lastError);
+  error.classList.toggle('visible', recovering || connectionNotice || Boolean(s.lastError));
+  error.classList.toggle('info', recovering || connectionNotice);
+}
+
+function showError(err) {
+  const error = document.getElementById('lastError');
+  error.textContent = friendlyError(err instanceof Error ? err.message : String(err));
+  error.classList.add('visible');
+  error.classList.remove('info');
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function localSettings() {
+  return {localUrl: document.getElementById('manualLocalUrl').value.trim(), dataRoot: document.getElementById('manualDataRoot').value.trim()};
+}
+
+document.getElementById('login').onclick = async () => {
+  try {
+    const data = await api('/api/login/start', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(localSettings())});
+    location.href = data.loginUrl;
+  } catch (err) { showError(err); }
+};
+
+document.getElementById('rescan').onclick = async () => {
+  const button = document.getElementById('rescan');
+  button.disabled = true;
+  try { await api('/api/harness/rescan', {method:'POST'}); await refresh(); }
+  catch (err) { showError(err); }
+  finally { button.disabled = false; }
+};
+
+document.getElementById('remoteToggle').onchange = async event => {
+  const shouldRun = event.target.checked;
+  actionPending = true;
+  event.target.disabled = true;
+  try {
+    if (shouldRun) await api('/api/tunnel/start', {method:'POST', headers: {'content-type':'application/json'}, body: JSON.stringify(localSettings())});
+    else await api('/api/tunnel/stop', {method:'POST'});
+  } catch (err) {
+    event.target.checked = !shouldRun;
+    showError(err);
+  } finally {
+    actionPending = false;
+    await refresh();
+  }
+};
+
+async function chooseLanguage(next) {
+  try {
+    await api('/api/preferences/language', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({language:next})});
+    setLanguage(next);
+  } catch (err) { showError(err); }
+}
+async function chooseTheme(next) {
+  try {
+    await api('/api/preferences/theme', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({theme:next})});
+    setTheme(next);
+  } catch (err) { showError(err); }
+}
+
+function closeHeaderMenus() {
+  for (const [buttonId, panelId] of [['supportButton', 'supportPanel'], ['preferencesButton', 'preferencesPanel']]) {
+    document.getElementById(panelId).hidden = true;
+    document.getElementById(buttonId).setAttribute('aria-expanded', 'false');
+  }
+}
+
+function toggleHeaderMenu(buttonId, panelId) {
+  const shouldOpen = document.getElementById(panelId).hidden;
+  closeHeaderMenus();
+  if (shouldOpen) {
+    document.getElementById(panelId).hidden = false;
+    document.getElementById(buttonId).setAttribute('aria-expanded', 'true');
+  }
+}
+
+document.getElementById('supportButton').onclick = () => toggleHeaderMenu('supportButton', 'supportPanel');
+document.getElementById('preferencesButton').onclick = () => toggleHeaderMenu('preferencesButton', 'preferencesPanel');
+document.addEventListener('pointerdown', event => {
+  if (!document.getElementById('supportMenu').contains(event.target) && !document.getElementById('preferencesMenu').contains(event.target)) closeHeaderMenus();
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  const openButton = document.querySelector('.header-menu .icon-button[aria-expanded="true"]');
+  if (openButton) {
+    closeHeaderMenus();
+    openButton.focus();
+  }
+});
+document.getElementById('langZh').onclick = () => chooseLanguage('zh');
+document.getElementById('langEn').onclick = () => chooseLanguage('en');
+document.getElementById('themeSystem').onclick = () => chooseTheme('system');
+document.getElementById('themeLight').onclick = () => chooseTheme('light');
+document.getElementById('themeDark').onclick = () => chooseTheme('dark');
+setLanguage('zh');
+setTheme('system');
+async function refreshSubscription(){try{await api('/api/subscription/refresh',{method:'POST'});await refresh();}catch(err){showError(err);}}
+document.getElementById('refreshSubscription').onclick=refreshSubscription;
+document.getElementById('retryCancellation').onclick=async()=>{try{await api('/api/cancellation/retry',{method:'POST'});await refresh();}catch(err){showError(err);}};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSubscription();});
+window.addEventListener('online',()=>{void api('/api/wake',{method:'POST'}).catch(()=>{});});
+refreshSubscription();
+setInterval(()=>{if(!document.hidden)void refresh();},3000);
+setInterval(()=>{if(!document.hidden)void refreshSubscription();},60000);
+</script>
+</body>
+</html>

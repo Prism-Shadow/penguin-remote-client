@@ -1,0 +1,70 @@
+name: Desktop build
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+      - run: go test -mod=readonly -buildvcs=false ./...
+
+  package:
+    if: github.event_name != 'pull_request'
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            command: pack:win
+            artifact: windows-x64
+          - os: macos-15-intel
+            command: pack:mac:x64
+            artifact: macos-x64
+          - os: macos-15
+            command: pack:mac:arm64
+            artifact: macos-arm64
+          - os: ubuntu-22.04
+            command: pack:linux
+            artifact: linux-x64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: desktop/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm ${{ matrix.command }}
+        env:
+          PENGUIN_REMOTE_GO_URL: https://go.penguin.ooo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: penguin-remote-${{ matrix.artifact }}
+          if-no-files-found: error
+          path: |
+            dist/desktop/penguin-remote-*
