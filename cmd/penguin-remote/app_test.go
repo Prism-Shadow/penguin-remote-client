@@ -104,7 +104,7 @@ func acquired() *remoteapi.AcquireResponse {
 	return &remoteapi.AcquireResponse{ProtocolVersion: 2, Entitlement: remoteapi.RemoteEntitlement{Status: "active", ExpiresAt: &expiry}, Grant: remoteapi.SlotGrant{GrantID: "grant", Credential: "tunnel-secret", SlotIndex: 1, Generation: 7}, Tunnel: remoteapi.SlotTunnel{ProxyName: "device.slot", CustomDomain: "u.remote.test", TransportToken: "transport-secret", PublicURL: "https://u.remote.test", ServerAddr: "localhost", ServerPort: 7000}}
 }
 func identity() remote.Config {
-	return remote.Config{Version: 4, Source: remote.SourceLogin, Device: remote.DeviceConfig{ID: "device", UserID: "1"}, DeviceAccessToken: "device-secret", Harness: remote.HarnessConfig{LocalURL: remote.DefaultHarnessURL}}
+	return remote.Config{PenguinGoURL: remoteapi.DefaultBaseURL, Version: 4, Source: remote.SourceLogin, Device: remote.DeviceConfig{ID: "device", UserID: "1"}, DeviceAccessToken: "device-secret", Harness: remote.HarnessConfig{LocalURL: remote.DefaultHarnessURL}}
 }
 func newTestApp(t *testing.T, cfg *remote.Config, url string) (*appServer, *fakeRuntimeFactory, *httptest.Server) {
 	t.Helper()
@@ -112,6 +112,7 @@ func newTestApp(t *testing.T, cfg *remote.Config, url string) (*appServer, *fake
 	a := &appServer{configPath: filepath.Join(t.TempDir(), "remote.json"), penguinGoURL: url, runnerStatus: "stopped", language: "zh", theme: "system", localURL: remote.DefaultHarnessURL, newRuntime: f.build}
 	if cfg != nil {
 		c := cloneConfig(*cfg)
+		c.PenguinGoURL = apiIdentity(url)
 		a.config = &c
 		_ = remote.SaveConfig(a.configPath, c)
 	}

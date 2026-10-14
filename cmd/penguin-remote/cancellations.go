@@ -52,7 +52,7 @@ func ensureCLIGrantSettled(path string, c remote.Config) error {
 		if task == nil {
 			return errors.New("cancel_storage_failed")
 		}
-		if taskDeviceMatches(task, c) {
+		if apiIdentity(task.BaseURL) == apiIdentity(c.PenguinGoURL) && taskDeviceMatches(task, c) {
 			return errors.New("cancel_pending")
 		}
 	}
@@ -102,6 +102,7 @@ func taskDeviceMatches(t *cancelTask, c remote.Config) bool {
 	return t.DeviceID == c.Device.ID && t.UserID == c.Device.UserID
 }
 func apiIdentity(raw string) string {
+	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		raw = remoteapi.DefaultBaseURL
 	}
@@ -113,8 +114,10 @@ func apiIdentity(raw string) string {
 	port := u.Port()
 	if port != "" && !(u.Scheme == "https" && port == "443") && !(u.Scheme == "http" && port == "80") {
 		host = net.JoinHostPort(host, port)
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
 	}
-	return u.Scheme + "://" + host + strings.TrimRight(u.Path, "/")
+	return u.Scheme + "://" + host + strings.TrimRight(u.EscapedPath(), "/")
 }
 func (a *appServer) taskForLocked(c remote.Config, id string) *cancelTask {
 	for _, task := range a.cancellations {
@@ -290,7 +293,7 @@ func (a *appServer) loadCancellations() {
 }
 func (a *appServer) hasIdentityCancellationLocked(c remote.Config) bool {
 	for _, t := range a.cancellations {
-		if taskDeviceMatches(t, c) {
+		if a.sameTaskIdentity(t, c) {
 			return true
 		}
 	}
@@ -364,7 +367,7 @@ func (a *appServer) runCancellations(ctx context.Context) {
 		a.mu.Unlock()
 		var err error
 		if !task.confirmed {
-			cfg := remote.Config{Device: remote.DeviceConfig{ID: task.DeviceID, UserID: task.UserID}, DeviceAccessToken: task.AccessToken, Network: network}
+			cfg := remote.Config{PenguinGoURL: apiIdentity(task.BaseURL), Device: remote.DeviceConfig{ID: task.DeviceID, UserID: task.UserID}, DeviceAccessToken: task.AccessToken, Network: network}
 			cli, e := a.slotClientAt(cfg, task.BaseURL)
 			err = e
 			if err == nil {

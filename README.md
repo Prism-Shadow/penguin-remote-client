@@ -51,6 +51,14 @@ under `dist/desktop`. `PENGUIN_REMOTE_GO_URL` selects the public service address
 at build time and defaults to `https://go.penguin.ooo`. It is not a credential.
 Do not include user tokens, local configuration, signing keys or server secrets.
 
+Official distribution builds use the production service. There is no end-user
+environment switch; staging addresses are developer build inputs only. Desktop
+credentials, installation identity and cancellation journals are isolated under
+a service-specific directory. Native product configs also record their Penguin
+Go service identity and reject credentials from another service or an unbound
+legacy config. Upgrading a legacy desktop installation requires a fresh sign-in;
+the old state files are not automatically imported or deleted.
+
 HTTP gzip remains fixed at level 1. Ordinary JSON forwarding keeps its bounded
 64 KiB / 25 ms buffer. Control and work connections remain separate; frp tunnel
 compression is disabled. Desktop networking continues to follow system policy.

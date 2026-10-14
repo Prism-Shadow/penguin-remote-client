@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { app, BrowserWindow, dialog, shell, session, powerMonitor } from "electron";
 import {
+  configPathForService,
   isLocalAppURL,
   readyURLFromOutput,
   remoteBinaryPath,
@@ -62,8 +63,9 @@ async function startRemoteProcess(): Promise<string> {
   if (!fs.existsSync(executable)) throw new Error("Bundled client not found: " + executable);
 
   const userData = app.getPath("userData");
-  fs.mkdirSync(userData, { recursive: true });
-  const configPath = path.join(userData, "remote.json");
+  const penguinGoURL = buildConfig().penguinGoUrl;
+  const configPath = configPathForService(userData, penguinGoURL);
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
   networkBridge = await startSystemBridge(
     url => session.defaultSession.resolveProxy(url),
     process.env.PENGUIN_REMOTE_DIAGNOSTICS === "1" ? createNetworkDiagnostics(path.join(userData, "network-diagnostics.log")) : undefined,
@@ -76,7 +78,7 @@ async function startRemoteProcess(): Promise<string> {
     "-config",
     configPath,
     "-penguin-go-url",
-    buildConfig().penguinGoUrl,
+    penguinGoURL,
   ];
   appendLog("Starting bundled client from " + executable);
 

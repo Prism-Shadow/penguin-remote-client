@@ -98,6 +98,8 @@ const (
 )
 
 type Config struct {
+	// PenguinGoURL binds saved credentials and grants to their authorizing service.
+	PenguinGoURL      string               `json:"penguinGoUrl,omitempty"`
 	Version           int                  `json:"version"`
 	DeviceAccessToken string               `json:"deviceAccessToken,omitempty"`
 	Grant             *remoteapi.SlotGrant `json:"grant,omitempty"`

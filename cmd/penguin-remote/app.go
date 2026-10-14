@@ -153,19 +153,8 @@ func runApp(args []string) error {
 		authStatus:        "unchecked",
 		newRuntime:        newTunnelRuntime,
 	}
-	if cfg, err := remote.LoadConfig(*configPath); err == nil {
-		// Persist v5 immediately so older clients cannot ignore the cancellation
-		// barrier when restoring this installation's pending connection intent.
-		if err := remote.SaveConfig(*configPath, *cfg); err != nil {
-			return err
-		}
-		cfg.Network = app.systemNetwork()
-		app.config = cfg
-		if cfg.NeedsLogin && cfg.DeviceAccessToken == "" {
-			app.lastError = "protocol_upgrade_required"
-		}
-		app.localURL = cfg.Harness.LocalURL
-		app.dataRoot = cfg.Harness.DataRoot
+	if err := app.loadStoredConfig(); err != nil {
+		return err
 	}
 	_ = app.refreshHarnessDiscovery(context.Background())
 	app.loadCancellations()

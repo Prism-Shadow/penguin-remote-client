@@ -183,7 +183,8 @@ func runLogin(args []string) error {
 		if err != nil {
 			return loginCallback{Err: fmt.Errorf("Penguin Go returned an unusable Remote login response: %w", err)}
 		}
-		if old, err := remote.LoadConfig(*out); err == nil {
+		cfg.PenguinGoURL = apiIdentity(*penguinGoURL)
+		if old, err := remote.LoadConfig(*out); err == nil && configServiceMatches(*old, *penguinGoURL) {
 			if old.Device.ID == cfg.Device.ID && old.Device.UserID == cfg.Device.UserID {
 				cfg.Grant = old.Grant
 				cfg.Tunnel = old.Tunnel
@@ -313,7 +314,9 @@ func runClient(args []string) error {
 	if err != nil {
 		return err
 	}
-	_ = penguinGoURL
+	if cfg.Source != remote.SourceDevConfig && !configServiceMatches(*cfg, *penguinGoURL) {
+		return errors.New("saved authorization does not belong to this Penguin Go service; sign in again")
+	}
 	if err := ensureCLIGrantSettled(*configPath, *cfg); err != nil {
 		return err
 	}

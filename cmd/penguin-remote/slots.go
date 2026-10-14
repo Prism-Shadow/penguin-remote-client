@@ -72,6 +72,9 @@ func (a *appServer) slotClient(c remote.Config) (slotClient, error) {
 	return a.slotClientAt(c, a.penguinGoURL)
 }
 func (a *appServer) slotClientAt(c remote.Config, baseURL string) (slotClient, error) {
+	if !configServiceMatches(c, baseURL) {
+		return nil, &remoteapi.ResponseError{StatusCode: http.StatusUnauthorized, Code: "device_credential_invalid"}
+	}
 	if a.newSlotClient != nil {
 		return a.newSlotClient(c)
 	}
@@ -101,11 +104,12 @@ func (a *appServer) installIdentity(state string, c remote.Config) error {
 		return context.Canceled
 	}
 	a.loginState = ""
+	c.PenguinGoURL = apiIdentity(a.penguinGoURL)
 	old := a.config
 	var release *remote.Config
 	var rt *runningTunnel
 	if old != nil {
-		if old.Device.ID == c.Device.ID && old.Device.UserID == c.Device.UserID {
+		if configServiceMatches(*old, a.penguinGoURL) && old.Device.ID == c.Device.ID && old.Device.UserID == c.Device.UserID {
 			c.Grant = old.Grant
 			c.Tunnel = old.Tunnel
 			c.Desired = old.Desired
@@ -114,9 +118,11 @@ func (a *appServer) installIdentity(state string, c remote.Config) error {
 			c.Device.UserName = old.Device.UserName
 		} else {
 			v := cloneConfig(*old)
-			release = &v
 			rt = a.detachLocked()
-			_ = a.recordRequestLocked(v, v.PendingRequestID)
+			if configServiceMatches(v, a.penguinGoURL) {
+				release = &v
+				_ = a.recordRequestLocked(v, v.PendingRequestID)
+			}
 		}
 	}
 	c.Network = a.systemNetwork()
