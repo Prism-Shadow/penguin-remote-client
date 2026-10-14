@@ -10,8 +10,8 @@ export const requiredAssets = [
   "penguin-remote-mac-x64.zip",
   "penguin-remote-mac-arm64.dmg",
   "penguin-remote-mac-arm64.zip",
-  "penguin-remote-linux-x64.AppImage",
-  "penguin-remote-linux-x64.deb",
+  "penguin-remote-linux-x86_64.AppImage",
+  "penguin-remote-linux-amd64.deb",
 ];
 
 export function prepareRelease(directory, tag, commit, version) {

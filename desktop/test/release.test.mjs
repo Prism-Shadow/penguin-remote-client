@@ -8,6 +8,11 @@ import { verifyUploadedRelease } from "../../scripts/verify-uploaded-release.mjs
 import { resourcesDirectory } from "../scripts/verify-package.mjs";
 
 describe("desktop release gates", () => {
+  it("uses the architecture names emitted by Linux package formats", () => {
+    expect(requiredAssets).toContain("penguin-remote-linux-x86_64.AppImage");
+    expect(requiredAssets).toContain("penguin-remote-linux-amd64.deb");
+    expect(requiredAssets).not.toContain("penguin-remote-linux-x64.deb");
+  });
   it("resolves each supported packaged resources directory", () => {
     expect(resourcesDirectory("win","x64")).toBe("win-unpacked/resources");
     expect(resourcesDirectory("linux","x64")).toBe("linux-unpacked/resources");
