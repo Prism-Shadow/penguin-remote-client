@@ -156,6 +156,7 @@ jobs:
               --title "Penguin Remote $RELEASE_VERSION (Unsigned Preview)" --notes-file release-notes.txt
           fi
           gh release upload "$RELEASE_TAG" release-assets/* --clobber
-          gh api "repos/$GH_REPO/releases/tags/$RELEASE_TAG" > uploaded-release.json
+          RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq '.apiUrl')"
+          gh api "$RELEASE_API_URL" > uploaded-release.json
           node scripts/verify-uploaded-release.mjs release-assets uploaded-release.json
           gh release edit "$RELEASE_TAG" --draft=false --prerelease
