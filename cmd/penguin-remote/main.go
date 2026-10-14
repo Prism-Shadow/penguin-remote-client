@@ -337,7 +337,7 @@ func runClient(args []string) error {
 	if cfg.Tunnel.PublicURL != "" {
 		fmt.Printf("public URL: %s\n", cfg.Tunnel.PublicURL)
 	}
-	fmt.Printf("forwarding %s through a local authenticated proxy and %s:%d on %s\n", cfg.Harness.LocalURL, cfg.Tunnel.ServerAddr, cfg.Tunnel.ServerPort, runtime.GOOS)
+	fmt.Printf("forwarding %s through a local Harness proxy (%s login) and %s:%d on %s\n", cfg.Harness.LocalURL, client.HarnessLoginMode(), cfg.Tunnel.ServerAddr, cfg.Tunnel.ServerPort, runtime.GOOS)
 	return client.Run(ctx)
 }
 

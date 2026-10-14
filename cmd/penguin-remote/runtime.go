@@ -28,21 +28,30 @@ type clientRuntime struct {
 	runner    *frpclient.Runner
 	proxy     *localproxy.Proxy
 	dataRoot  string
+	loginMode harnessapi.LoginMode
 	closeOnce sync.Once
 }
 
-func newTunnelRuntime(ctx context.Context, cfg remote.Config) (tunnelRuntime, error) {
-	return newClientRuntime(ctx, cfg)
+type harnessStartupError struct {
+	code string
+	err  error
 }
 
+func (e *harnessStartupError) Error() string { return e.err.Error() }
+func (e *harnessStartupError) Unwrap() error { return e.err }
+
 func newClientRuntime(ctx context.Context, cfg remote.Config) (*clientRuntime, error) {
+	return newClientRuntimeForMode(ctx, cfg, "")
+}
+
+func newClientRuntimeForMode(ctx context.Context, cfg remote.Config, selected harnessapi.LoginMode) (*clientRuntime, error) {
 	targetBackend, err := cfg.LocalBackend()
 	if err != nil {
 		return nil, err
 	}
 	access, err := remote.ResolveHarnessAccess(ctx, cfg.Harness.LocalURL, cfg.Harness.DataRoot)
 	if err != nil {
-		return nil, fmt.Errorf("resolve local Harness authorization: %w", err)
+		return nil, &harnessStartupError{code: "harness_authorization_failed", err: fmt.Errorf("resolve local Harness authorization: %w", err)}
 	}
 	harnessClient, err := harnessapi.NewClient(
 		cfg.Harness.LocalURL,
@@ -52,9 +61,11 @@ func newClientRuntime(ctx context.Context, cfg remote.Config) (*clientRuntime, e
 	if err != nil {
 		return nil, err
 	}
-	initialSession, err := harnessClient.IssueRemoteSession(ctx)
+	// ResolveHarnessAccess has authenticated the local admin token against this
+	// exact endpoint. Only then may an unsupported session API select manual login.
+	mode, initialSession, err := harnessClient.PrepareLogin(ctx, selected)
 	if err != nil {
-		return nil, err
+		return nil, &harnessStartupError{code: "harness_session_failed", err: err}
 	}
 	if err := cfg.ValidateTunnel(); err != nil {
 		return nil, err
@@ -66,13 +77,12 @@ func newClientRuntime(ctx context.Context, cfg remote.Config) (*clientRuntime, e
 	// Vite rejects the public tunnel Host before serving the pnpm development UI. Normalize
 	// Host and Origin only for that known dev endpoint; packaged Harness servers keep the
 	// browser-facing origin so URL generation and their own origin checks retain normal behavior.
-	proxy, err := localproxy.Start(
-		cfg.Harness.LocalURL,
-		harnessClient,
-		secure,
-		targetBackend.Port == 7365,
-		initialSession,
-	)
+	var proxy *localproxy.Proxy
+	if mode == harnessapi.LoginManual {
+		proxy, err = localproxy.StartManual(cfg.Harness.LocalURL, secure, targetBackend.Port == 7365)
+	} else {
+		proxy, err = localproxy.Start(cfg.Harness.LocalURL, harnessClient, secure, targetBackend.Port == 7365, initialSession)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +94,10 @@ func newClientRuntime(ctx context.Context, cfg remote.Config) (*clientRuntime, e
 		_ = proxy.Close(closeCtx)
 		return nil, err
 	}
-	return &clientRuntime{runner: runner, proxy: proxy, dataRoot: access.DataRoot}, nil
+	return &clientRuntime{runner: runner, proxy: proxy, dataRoot: access.DataRoot, loginMode: mode}, nil
 }
+
+func (r *clientRuntime) HarnessLoginMode() harnessapi.LoginMode { return r.loginMode }
 
 func (r *clientRuntime) Run(ctx context.Context) error {
 	return r.runner.Run(ctx)

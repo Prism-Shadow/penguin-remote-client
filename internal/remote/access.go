@@ -67,6 +67,11 @@ func harnessDataRootCandidates(configured string) ([]string, error) {
 		roots = append(roots, path)
 	}
 	add(configured)
+	// An explicit data directory must match the selected service. Falling back
+	// to another installation would hide a configuration mistake.
+	if strings.TrimSpace(configured) != "" {
+		return roots, nil
+	}
 	add(os.Getenv("PENGUIN_HOME"))
 	home, err := os.UserHomeDir()
 	if err != nil {

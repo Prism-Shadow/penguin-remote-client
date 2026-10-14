@@ -1,6 +1,6 @@
 # 用户提示完整清单 / User messages
 
-包含全部 137 个界面与提示 key。机器拒绝码只映射静态文案，不显示原始错误或秘密。
+包含界面与提示 key。机器拒绝码只映射静态文案，不显示原始错误或秘密。
 
 | Key | 中文 | English |
 |---|---|---|
@@ -87,6 +87,9 @@
 |subscriptionStatusTitle|订阅状态|Subscription|
 |discoveryResult|发现结果|Discovery|
 |authReady|本机连接已就绪|Local connection is ready|
+|harnessLoginAutomatic|自动登录可用|Automatic sign-in available|
+|harness_authorization_failed|本机 Harness 认证失败。请检查 api-token 是否存在、有效，以及数据目录是否与所选 Harness 匹配。|Local Harness authentication failed. Check that api-token exists, is valid, and its data directory matches the selected Harness.|
+|harness_session_failed|Harness 自动登录失败。请检查 Harness 状态后重试；本次连接不会自动切换为手动登录。|Harness automatic sign-in failed. Check Harness and retry; this connection will not switch to manual sign-in automatically.|
 |authError|无法连接本机 Harness|Cannot connect to local Harness|
 |authUnchecked|开启时验证本机连接|Local access is checked when starting|
 |runnerStarting|正在启动|Starting|
