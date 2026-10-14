@@ -3,6 +3,15 @@ name: Desktop build and release
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      require_windows_signing:
+        description: Sign Windows artifacts with EVSign; fail if credentials are missing.
+        type: boolean
+        default: false
+      require_macos_signing:
+        description: Sign and notarize macOS artifacts; fail if credentials are missing.
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -11,6 +20,10 @@ on:
 
 permissions:
   contents: read
+
+env:
+  REQUIRE_WINDOWS_SIGNING: ${{ (startsWith(github.ref, 'refs/tags/desktop-v') || inputs.require_windows_signing) && 'true' || 'false' }}
+  REQUIRE_MACOS_SIGNING: ${{ (startsWith(github.ref, 'refs/tags/desktop-v') || inputs.require_macos_signing) && 'true' || 'false' }}
 
 concurrency:
   group: desktop-${{ github.ref }}
@@ -58,7 +71,7 @@ jobs:
   package:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/desktop-v')
     needs: check
-    timeout-minutes: 40
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -66,16 +79,30 @@ jobs:
           - os: windows-latest
             command: pack:win
             artifact: windows-x64
+            environment: desktop-build
+            platform: win
+            arch: x64
           - os: macos-15-intel
             command: pack:mac:x64
             artifact: macos-x64
+            environment: apple-signing
+            platform: mac
+            arch: x64
           - os: macos-15
             command: pack:mac:arm64
             artifact: macos-arm64
+            environment: apple-signing
+            platform: mac
+            arch: arm64
           - os: ubuntu-22.04
             command: pack:linux
             artifact: linux-x64
+            environment: desktop-build
+            platform: linux
+            arch: x64
     runs-on: ${{ matrix.os }}
+    environment:
+      name: ${{ matrix.environment }}
     defaults:
       run:
         working-directory: desktop
@@ -97,11 +124,40 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Prepare Windows signing credentials
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          EVSIGN_KEY: ${{ secrets.EVSIGN_KEY }}
+        run: ./scripts/prepare-windows-signing.ps1
+      - name: Prepare macOS signing credentials
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bash scripts/prepare-macos-signing.sh
       - run: pnpm ${{ matrix.command }}
         env:
           PENGUIN_REMOTE_GO_URL: https://go.penguin.ooo
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          EVSIGN_KEY: ${{ runner.os == 'Windows' && env.REQUIRE_WINDOWS_SIGNING == 'true' && secrets.EVSIGN_KEY || '' }}
           APPIMAGE_EXTRACT_AND_RUN: "1"
+      - name: Verify Windows signatures
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/verify-windows-signing.ps1
+      - name: Verify macOS signatures and notarize DMG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash scripts/verify-macos-signing.sh "${{ matrix.arch }}"
+      - name: Remove temporary Apple API key
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/penguin-remote-signing/"AuthKey_*.p8
       - uses: actions/upload-artifact@v4
         with:
           name: penguin-remote-${{ matrix.artifact }}
@@ -109,6 +165,7 @@ jobs:
           retention-days: 14
           path: |
             dist/desktop/penguin-remote-*
+            dist/desktop/signing-*.json
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/desktop-v')
@@ -133,7 +190,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/prepare-release.mjs --dir release-assets --tag "$RELEASE_TAG" --commit "$GITHUB_SHA"
-      - name: Upload and publish unsigned prerelease
+      - name: Upload and publish signed prerelease
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -141,7 +198,7 @@ jobs:
           RELEASE_VERSION: ${{ needs.check.outputs.version }}
         run: |
           printf '%s\n' \
-            'Unsigned preview build. Windows/macOS trust prompts are expected; macOS is not notarized.' \
+            'Windows artifacts are Authenticode signed; macOS apps are Developer ID signed and notarized, with stapled DMGs.' \
             'Official Penguin Go endpoint: https://go.penguin.ooo. Remote subscription and compatible server deployment are required.' \
             'Legacy credentials require a fresh sign-in. SHA256SUMS.txt and release-manifest.json identify the uploaded files and source commit.' \
             > release-notes.txt
@@ -153,7 +210,7 @@ jobs:
             '
           else
             gh release create "$RELEASE_TAG" --verify-tag --target "$GITHUB_SHA" --draft --prerelease \
-              --title "Penguin Remote $RELEASE_VERSION (Unsigned Preview)" --notes-file release-notes.txt
+              --title "Penguin Remote $RELEASE_VERSION" --notes-file release-notes.txt
           fi
           gh release upload "$RELEASE_TAG" release-assets/* --clobber
           RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq '.apiUrl')"

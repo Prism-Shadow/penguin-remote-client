@@ -28,10 +28,23 @@ extraResources:
 asar: true
 npmRebuild: false
 nodeGypRebuild: false
+afterPack: build/after-pack.cjs
+afterSign: build/after-sign.cjs
 
 win:
   icon: build/icon.png
   artifactName: penguin-remote-win-${arch}.${ext}
+  # The Go executable is signed before packaging and copied byte-for-byte.
+  signExts:
+    - Penguin Remote.exe
+    - elevate.exe
+    - penguin-remote-win-x64.exe
+    - .__uninstaller.exe
+    - "!.exe"
+  signtoolOptions:
+    sign: build/evsign.cjs
+    signingHashAlgorithms:
+      - sha256
   target:
     - nsis
 
@@ -44,6 +57,10 @@ nsis:
 mac:
   icon: build/icon-mac.png
   category: public.app-category.utilities
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.inherit.plist
+  notarize: true
   artifactName: penguin-remote-mac-${arch}.${ext}
   target:
     - dmg
