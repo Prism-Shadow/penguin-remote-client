@@ -12,6 +12,10 @@ on:
         description: Sign and notarize macOS artifacts; fail if credentials are missing.
         type: boolean
         default: false
+      windows_only:
+        description: Build only Windows for a manual signing rehearsal; tags always build all platforms.
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -75,31 +79,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-latest
-            command: pack:win
-            artifact: windows-x64
-            environment: desktop-build
-            platform: win
-            arch: x64
-          - os: macos-15-intel
-            command: pack:mac:x64
-            artifact: macos-x64
-            environment: apple-signing
-            platform: mac
-            arch: x64
-          - os: macos-15
-            command: pack:mac:arm64
-            artifact: macos-arm64
-            environment: apple-signing
-            platform: mac
-            arch: arm64
-          - os: ubuntu-22.04
-            command: pack:linux
-            artifact: linux-x64
-            environment: desktop-build
-            platform: linux
-            arch: x64
+        include: >-
+          ${{ fromJSON(
+            github.event_name == 'workflow_dispatch' && inputs.windows_only &&
+            '[{"os":"windows-latest","command":"pack:win","artifact":"windows-x64","environment":"desktop-build","platform":"win","arch":"x64"}]' ||
+            '[{"os":"windows-latest","command":"pack:win","artifact":"windows-x64","environment":"desktop-build","platform":"win","arch":"x64"},
+              {"os":"macos-15-intel","command":"pack:mac:x64","artifact":"macos-x64","environment":"apple-signing","platform":"mac","arch":"x64"},
+              {"os":"macos-15","command":"pack:mac:arm64","artifact":"macos-arm64","environment":"apple-signing","platform":"mac","arch":"arm64"},
+              {"os":"ubuntu-22.04","command":"pack:linux","artifact":"linux-x64","environment":"desktop-build","platform":"linux","arch":"x64"}]'
+          ) }}
     runs-on: ${{ matrix.os }}
     environment:
       name: ${{ matrix.environment }}

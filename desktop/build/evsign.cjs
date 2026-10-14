@@ -31,18 +31,19 @@ async function evsign(configuration) {
   if (!fs.existsSync(client)) throw new Error("EVSign client was not found.");
 
   console.log(`[evsign] signing ${basename}`);
-  const run = (command, args) => new Promise((resolve, reject) => {
+  const run = (command, args, stage) => new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: ["ignore", "inherit", "inherit"], windowsHide: true,
     });
-    child.on("error", reject);
+    child.on("error", () => reject(new Error(`${stage} could not start for ${basename}.`)));
     child.on("exit", code => code === 0 ? resolve() :
-      reject(new Error(`EVSign failed for ${basename} with exit code ${code}.`)));
+      reject(new Error(`${stage} failed for ${basename} with exit code ${code}.`)));
   });
-  await run(client, [file, "-key", key, "-sha256"]);
+  await run(client, [file, "-key", key, "-sha256"], "EVSign signing");
   // Includes the temporary NSIS uninstaller before electron-builder embeds it.
-  await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-File",
-    path.join(__dirname, "../scripts/verify-windows-signing.ps1"), "-SignedFile", file]);
+  await run("pwsh.exe", ["-NoProfile", "-NonInteractive", "-File",
+    path.join(__dirname, "../scripts/verify-windows-signing.ps1"), "-SignedFile", file],
+    "Windows signature verification");
 }
 
 module.exports = evsign;

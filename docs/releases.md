@@ -27,6 +27,8 @@ Release-write permission is limited to the final publishing job. Manual runs exp
 `require_windows_signing` and `require_macos_signing` inputs, both false by default;
 enable them to rehearse signing without publishing. Matching `desktop-v*` tag builds
 always require both. Pull request and main-branch checks do not use signing secrets.
+Manual runs may set `windows_only` to test a Windows signing change without
+rebuilding macOS and Linux. This option never reduces the formal tag release matrix.
 
 ## Signing Credentials
 
