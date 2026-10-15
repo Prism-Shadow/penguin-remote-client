@@ -260,6 +260,9 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     harnessAddress:'Harness 地址', harnessData:'Harness 数据目录', localAuth:'本机认证',
     connectionStatus:'连接状态', subscriptionStatusTitle:'订阅状态', discoveryResult:'发现结果',
     authReady:'本机连接已就绪', authError:'无法连接本机 Harness', authUnchecked:'开启时验证本机连接',
+    harnessLoginAutomatic:'自动登录可用',
+    harness_authorization_failed:'本机 Harness 认证失败。请检查 api-token 是否存在、有效，以及数据目录是否与所选 Harness 匹配。',
+    harness_session_failed:'Harness 自动登录失败。请检查 Harness 状态后重试；本次连接不会自动切换为手动登录。',
     runnerStarting:'正在启动', runnerRunning:'已开启', runnerStopping:'正在停止',
     runnerRecovering:'正在恢复连接', runnerError:'连接遇到问题', runnerStopped:'未开启',
     runnerConnected:'已连接', runnerConnecting:'正在连接', runnerReconnecting:'正在重连',
@@ -321,6 +324,9 @@ subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription inf
     harnessAddress:'Harness address', harnessData:'Harness data directory', localAuth:'Local authentication',
     connectionStatus:'Connection status', subscriptionStatusTitle:'Subscription', discoveryResult:'Discovery',
     authReady:'Local connection is ready', authError:'Cannot connect to local Harness', authUnchecked:'Local access is checked when starting',
+    harnessLoginAutomatic:'Automatic sign-in available',
+    harness_authorization_failed:'Local Harness authentication failed. Check that api-token exists, is valid, and its data directory matches the selected Harness.',
+    harness_session_failed:'Harness automatic sign-in failed. Check Harness and retry; this connection will not switch to manual sign-in automatically.',
     runnerStarting:'Starting', runnerRunning:'On', runnerStopping:'Stopping',
     runnerRecovering:'Restoring connection', runnerError:'Connection issue', runnerStopped:'Off',
     runnerConnected:'Connected', runnerConnecting:'Connecting', runnerReconnecting:'Reconnecting',
@@ -531,9 +537,10 @@ function render(s) {
   document.getElementById('serviceState').textContent = connectionLabel(s);
   document.getElementById('serviceDot').classList.toggle('online', connected);
   document.getElementById('runnerMetric').textContent = connectionLabel(s);
-  document.getElementById('authStatus').textContent = authLabel(s.authStatus);
+  const harnessAuth = s.authStatus === 'ready' && s.harnessLoginMode === 'automatic' ? t('harnessLoginAutomatic') : authLabel(s.authStatus);
+  document.getElementById('authStatus').textContent = harnessAuth;
   document.getElementById('runnerStatus').textContent = connectionLabel(s);
-  document.getElementById('authDiagnostic').textContent = authLabel(s.authStatus);
+  document.getElementById('authDiagnostic').textContent = harnessAuth;
 
   document.getElementById('harnessMetric').textContent = t(s.harnessFound ? 'harnessFound' : 'harnessNotFound');
   document.getElementById('harnessMetricDetail').textContent = currentHarness ? harnessKind(currentHarness.kind) : t('startHarness');

@@ -63,6 +63,42 @@ HTTP gzip remains fixed at level 1. Ordinary JSON forwarding keeps its bounded
 64 KiB / 25 ms buffer. Control and work connections remain separate; frp tunnel
 compression is disabled. Desktop networking continues to follow system policy.
 
+## Harness sign-in compatibility / Harness 登录兼容
+
+Remote verifies the local `api-token` against the selected Harness before
+probing `POST /api/remote/session`. A successful exchange keeps automatic browser
+sign-in. A direct HTTP 404 or 405 with a valid JSON API object selects manual
+sign-in: pass Penguin Go authorization at the Gateway, then sign in on the
+public Harness page with a Harness account. Upgrading Harness enables automatic
+sign-in but is not required to start access.
+
+Missing or invalid tokens, an explicit data directory that does not match,
+401/403, transport failures, timeouts, 5xx, redirects, HTML, invalid JSON and
+invalid sessions remain errors. The API client never follows redirects or uses
+a browser cookie jar. An explicit data directory is checked on its own; leaving
+it blank retains discovery of common data directories.
+
+The login mode lasts for one access intent, including automatic reconnection.
+Automatic mode never silently falls back after an exchange or validation error.
+Manual mode makes no session exchange or validation calls while forwarding,
+injects no local credentials, and preserves browser login/logout, Cookie,
+Set-Cookie, REST, SSE and WebSocket requests. Logging out in manual mode does not
+trigger automatic sign-in. Stop and turn access on again to detect capability
+changes. Host/Origin handling and all Gateway, subscription, slot and frps
+authorization checks retain their existing behavior.
+
+Remote 先使用所选 Harness 的本地 `api-token` 验证连接，再探测
+`POST /api/remote/session`。换票成功时保持自动登录；只有接口直接返回
+404/405，且响应是有效的 JSON API 对象时，才允许手动登录模式开启穿透。
+用户通过 Gateway 的 Penguin Go 鉴权后，在公网 Harness 页面使用 Harness
+自身账号登录。升级 Harness 可获得自动登录能力，但不是开启穿透的条件。
+
+token 缺失或无效、显式数据目录不匹配、401/403、超时、连接失败、5xx、
+重定向、HTML、无效 JSON 和无效 session 均保持错误。手动模式不换票或
+校验浏览器 session，不注入本地凭证；正常转发登录、退出和 Cookie，退出后
+不会自动重新登录。本次开启及自动重连期间固定登录模式，停止后重新开启
+会重新检测能力。现有 Host/Origin 与服务端鉴权边界保持不变。
+
 ## Extraction Status
 
 This is an independently maintained client source project, not a signed release.

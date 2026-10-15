@@ -13,6 +13,7 @@ func TestClientValidatesTokenAndIssuesRemoteSession(t *testing.T) {
 	const apiToken = "local-api-token"
 	const sessionToken = "remote-session-token"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
 		case "/api/me":
 			if r.Header.Get("Authorization") == "Bearer "+apiToken {

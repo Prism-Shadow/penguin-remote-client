@@ -151,7 +151,6 @@ func runApp(args []string) error {
 		clientInstanceID:  clientInstanceID,
 		runnerStatus:      "stopped",
 		authStatus:        "unchecked",
-		newRuntime:        newTunnelRuntime,
 	}
 	if err := app.loadStoredConfig(); err != nil {
 		return err
@@ -281,6 +280,10 @@ func (a *appServer) handleStatus(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 	lastError := a.lastError
+	harnessLoginMode := ""
+	if a.intent != nil {
+		harnessLoginMode = string(a.intent.loginMode)
+	}
 	if cancelPending {
 		lastError = a.cancellationMessageLocked()
 	}
@@ -312,6 +315,7 @@ func (a *appServer) handleStatus(w http.ResponseWriter, _ *http.Request) {
 		"runnerStatus":         a.runnerStatus,
 		"connectionStatus":     connectionStatus,
 		"authStatus":           a.authStatus,
+		"harnessLoginMode":     harnessLoginMode,
 		"lastError":            lastError,
 		"cancelPending":        cancelPending,
 	})

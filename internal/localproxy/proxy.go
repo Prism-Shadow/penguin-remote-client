@@ -31,6 +31,7 @@ type Proxy struct {
 	server   *http.Server
 	issuer   SessionIssuer
 	secure   bool
+	mode     harnessapi.LoginMode
 
 	mu        sync.Mutex
 	validated map[string]cachedSession
@@ -40,6 +41,19 @@ type Proxy struct {
 }
 
 func Start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool, initial harnessapi.RemoteSession) (*Proxy, error) {
+	if issuer == nil {
+		return nil, fmt.Errorf("automatic Harness login requires a session issuer")
+	}
+	return start(targetURL, issuer, secure, normalizeOrigin, initial, harnessapi.LoginAutomatic)
+}
+
+// StartManual forwards only browser-supplied credentials. No local API token,
+// session issuer or desktop/browser cookie store is available to this proxy.
+func StartManual(targetURL string, secure, normalizeOrigin bool) (*Proxy, error) {
+	return start(targetURL, nil, secure, normalizeOrigin, harnessapi.RemoteSession{}, harnessapi.LoginManual)
+}
+
+func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool, initial harnessapi.RemoteSession, mode harnessapi.LoginMode) (*Proxy, error) {
 	target, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse local Harness target: %w", err)
@@ -55,6 +69,7 @@ func Start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 		listener:  listener,
 		issuer:    issuer,
 		secure:    secure,
+		mode:      mode,
 		validated: make(map[string]cachedSession),
 		pending:   &initial,
 	}
@@ -95,6 +110,10 @@ func Start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 	}
 	p.server = &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if p.mode == harnessapi.LoginManual {
+				serveBufferedResponse(reverseProxy, w, r)
+				return
+			}
 			token, session, replace, err := p.ensureSession(r.Context(), cookieValue(r, harnessapi.SessionCookieName))
 			if err != nil {
 				w.Header().Set(publicerror.Header, "harness_session_failed")

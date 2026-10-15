@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/Prism-Shadow/penguin-remote-client/internal/harnessapi"
 	"github.com/Prism-Shadow/penguin-remote-client/internal/remote"
 	"github.com/Prism-Shadow/penguin-remote-client/internal/remoteapi"
 	"math/rand/v2"
@@ -23,6 +24,7 @@ type connectionIntent struct {
 	wake      chan struct{}
 	requestID string
 	harness   remote.HarnessConfig
+	loginMode harnessapi.LoginMode
 }
 
 func cloneConfig(c remote.Config) remote.Config {
@@ -443,12 +445,16 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 			a.reject(i, "grant_revoked")
 			return
 		}
-		rt, err := a.buildRuntime(i.ctx, cfg)
+		rt, err := a.buildRuntime(i.ctx, cfg, i.loginMode)
 		if err != nil {
 			attempt++
 			a.mu.Lock()
 			if a.owned(i) {
 				a.lastError = "harness_unavailable"
+				var startup *harnessStartupError
+				if errors.As(err, &startup) {
+					a.lastError = startup.code
+				}
 				a.runnerStatus = "reconnecting"
 			}
 			a.mu.Unlock()
@@ -466,6 +472,9 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 			return
 		}
 		a.tunnel = t
+		if runtime, ok := rt.(interface{ HarnessLoginMode() harnessapi.LoginMode }); ok {
+			i.loginMode = runtime.HarnessLoginMode()
+		}
 		a.runnerStatus = "running"
 		a.authStatus = "ready"
 		a.dataRoot = rt.DataRoot()
@@ -564,11 +573,11 @@ func (a *appServer) handleWake(w http.ResponseWriter, r *http.Request) {
 	a.mu.Unlock()
 	writeJSON(w, map[string]bool{"ok": true})
 }
-func (a *appServer) buildRuntime(ctx context.Context, cfg remote.Config) (tunnelRuntime, error) {
+func (a *appServer) buildRuntime(ctx context.Context, cfg remote.Config, mode harnessapi.LoginMode) (tunnelRuntime, error) {
 	if a.newRuntime != nil {
 		return a.newRuntime(ctx, cfg)
 	}
-	return newTunnelRuntime(ctx, cfg)
+	return newClientRuntimeForMode(ctx, cfg, mode)
 }
 
 func (a *appServer) setLoginError(state, message string) {
