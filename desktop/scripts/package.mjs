@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { buildNative } from "./build-native.mjs";
+import evsign from "../build/evsign.cjs";
 
 const desktopDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const platform = process.argv[2];
@@ -28,6 +29,10 @@ function run(command, args) {
 
 run(process.execPath, ["scripts/check-legal.mjs"]);
 buildNative(platform, arch);
+if (platform === "win") {
+  // Sign the source once; electron-builder excludes this executable from its hook.
+  await evsign({ path: path.join(desktopDir, "native/penguin-remote.exe"), hash: "sha256" });
+}
 const pnpmEntry = process.env.npm_execpath;
 const runPnpm = (args) => {
   if (pnpmEntry) run(process.execPath, [pnpmEntry, ...args]);
@@ -42,5 +47,13 @@ const electronExecutable = path.join(
 );
 if (!fs.existsSync(electronExecutable)) runPnpm(["exec", "install-electron"]);
 runPnpm(["build"]);
-runPnpm(["exec", "electron-builder", builderPlatform, builderArch, "--publish", "never"]);
+const signingArgs = [];
+if (platform === "mac") {
+  if (process.env.REQUIRE_MACOS_SIGNING === "true") signingArgs.push("-c.mac.forceCodeSigning=true");
+  else if (!process.env.CSC_LINK) {
+    process.env.CSC_IDENTITY_AUTO_DISCOVERY = "false";
+    signingArgs.push("-c.mac.hardenedRuntime=false");
+  }
+}
+runPnpm(["exec", "electron-builder", builderPlatform, builderArch, "--publish", "never", ...signingArgs]);
 run(process.execPath, ["scripts/verify-package.mjs", platform, arch]);

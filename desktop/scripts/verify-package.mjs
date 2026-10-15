@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import nativeIntegrity from "../build/native-integrity.cjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -43,8 +43,10 @@ export function verifyPackage(platform, arch) {
 
   const binaryName = platform === "win" ? "penguin-remote.exe" : "penguin-remote";
   const binary = path.join(resources, "bin", binaryName);
-  const hash = file => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-  if (hash(binary) !== hash(path.join(root, "desktop/native", binaryName))) throw new Error("Native client source/package mismatch");
+  const appOutDir = platform === "mac" ? path.resolve(resources, "../../..") : path.dirname(resources);
+  nativeIntegrity.verifyNativeIntegrity(
+    path.join(root, "desktop/native", binaryName), binary, path.join(appOutDir, ".native-integrity.json"),
+  );
   const host = {win32:"win", darwin:"mac", linux:"linux"}[process.platform];
   if (host === platform && process.arch === arch) {
     const help = spawnSync(binary, ["help"], {encoding:"utf8", timeout:15_000});
