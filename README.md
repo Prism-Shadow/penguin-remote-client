@@ -48,11 +48,14 @@ pnpm --dir desktop pack:linux
 
 Run platform packaging on its matching operating system. Build output is placed
 under `dist/desktop`. `PENGUIN_REMOTE_GO_URL` selects the public service address
-at build time and defaults to `https://go.penguin.ooo`. It is not a credential.
+at build time. Standard versions default to `https://go.penguin.ooo`; explicit
+`-staging.N` versions default to the staging endpoint recorded in the release
+manifest. The address is not a credential.
 Do not include user tokens, local configuration, signing keys or server secrets.
 
-Official distribution builds use the production service. There is no end-user
-environment switch; staging addresses are developer build inputs only. Desktop
+Production distribution builds use the production service. Explicit staging
+prereleases are marked as test-only and never become Latest. There is no end-user
+environment switch. Desktop
 credentials, installation identity and cancellation journals are isolated under
 a service-specific directory. Native product configs also record their Penguin
 Go service identity and reject credentials from another service or an unbound
@@ -101,14 +104,14 @@ token 缺失或无效、显式数据目录不匹配、401/403、超时、连接�
 
 ## Extraction Status
 
-This is an independently maintained client source project, not a signed release.
+This is an independently maintained client source project.
 See [source boundaries](docs/source-boundaries.md) for provenance, shared-code
 maintenance and integration-test ownership.
 
 The workflow checks main/PR source and packages all supported targets for manual
 runs or matching version tags. A successful version-tag matrix publishes an
-unsigned prerelease with checksums and a source manifest. See
-[desktop releases](docs/releases.md). Signing and macOS notarization are not configured.
+signed Windows and notarized macOS prerelease with checksums and a source manifest.
+See [desktop releases](docs/releases.md).
 
 ## License
 

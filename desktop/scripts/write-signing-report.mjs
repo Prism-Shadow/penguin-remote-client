@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { signingTargets } from "../../scripts/prepare-release.mjs";
+import { releaseTarget } from "../../scripts/release-target.mjs";
 
 const [platform, arch] = process.argv.slice(2);
 const target = signingTargets.find(candidate => candidate.platform === platform && candidate.arch === arch);
@@ -11,6 +12,10 @@ const required = platform === "win" ? process.env.REQUIRE_WINDOWS_SIGNING : proc
 if (required !== "true") throw new Error("Signing verification reports require a signed build");
 if (!/^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA || "")) throw new Error("Signing report requires the full source commit SHA");
 const outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../dist/desktop");
+const metadata = JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+const release = releaseTarget(metadata.version);
+const penguinGoUrl = (process.env.PENGUIN_REMOTE_GO_URL || release.penguinGoUrl).trim();
+if (penguinGoUrl !== release.penguinGoUrl) throw new Error("Signed build service differs from the release channel");
 const assets = target.assets.map(name => {
   const bytes = fs.readFileSync(path.join(outDir, name));
   if (!bytes.length) throw new Error("Empty signed asset: " + name);
@@ -18,5 +23,5 @@ const assets = target.assets.map(name => {
 });
 fs.writeFileSync(path.join(outDir, target.report), JSON.stringify({
   platform, arch, sourceCommit: process.env.GITHUB_SHA, trustedCodeSigning: true,
-  notarized: platform === "mac", assets,
+  notarized: platform === "mac", penguinGoUrl, assets,
 }, null, 2) + "\n");

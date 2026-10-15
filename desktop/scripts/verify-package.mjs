@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { releaseTarget } from "../../scripts/release-target.mjs";
 import nativeIntegrity from "../build/native-integrity.cjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -24,7 +25,8 @@ export function verifyPackage(platform, arch) {
   const appBuilderRequire = createRequire(builderRequire.resolve("app-builder-lib"));
   const asar = appBuilderRequire("@electron/asar");
   const config = JSON.parse(asar.extractFile(path.join(resources, "app.asar"), "dist/build-config.json").toString());
-  const expectedURL = (process.env.PENGUIN_REMOTE_GO_URL || "https://go.penguin.ooo").trim();
+  const metadata = JSON.parse(fs.readFileSync(path.join(root, "desktop/package.json"), "utf8"));
+  const expectedURL = (process.env.PENGUIN_REMOTE_GO_URL || releaseTarget(metadata.version).penguinGoUrl).trim();
   if (config.penguinGoUrl !== expectedURL) throw new Error("Packaged service address differs from build target");
 
   const files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "third_party/frp/LICENSE", "third_party/frp/REMOTE_CHANGES.md"];

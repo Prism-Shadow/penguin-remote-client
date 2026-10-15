@@ -1,8 +1,17 @@
 # Desktop Releases
 
-Official release builds target `https://go.penguin.ooo`. The public workflow does
-not expose a staging environment option. Developer-only local builds can still
-set `PENGUIN_REMOTE_GO_URL`; they must not be uploaded as official release assets.
+Standard release versions target `https://go.penguin.ooo`. Explicit versions in
+the form `0.1.3-staging.1` target `https://107-173-122-149.sslip.io` for end-to-end
+testing. The version selects the same service for all platform packages, signing
+reports and the release manifest. The app has no end-user environment switch.
+Developer-only local builds may override `PENGUIN_REMOTE_GO_URL`, but a mismatched
+signed build cannot pass release-channel verification.
+
+Staging releases are test-only prereleases and are never marked Latest. Configure
+staging Penguin Go downloads with the explicit `releases/download/<tag>/<asset>`
+URLs, not `releases/latest/download`. Existing releases remain unchanged. A later
+production release needs a new version, full platform build and explicit approval;
+never relabel a staging binary as a production build.
 
 ## Procedure
 

@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
+import { productionGoUrl, releaseTarget } from "./release-target.mjs";
 
 export const requiredAssets = [
   "penguin-remote-win-x64.exe",
@@ -20,11 +21,12 @@ export const signingTargets = [
   { report: "signing-macos-arm64.json", platform: "mac", arch: "arm64", notarized: true, assets: requiredAssets.slice(3, 5) },
 ];
 
-export function verifySigningReports(directory, commit) {
+export function verifySigningReports(directory, commit, penguinGoUrl = productionGoUrl) {
   for (const target of signingTargets) {
     const report = JSON.parse(fs.readFileSync(path.join(directory, target.report), "utf8"));
     if (report.platform !== target.platform || report.arch !== target.arch || report.sourceCommit !== commit ||
-        report.trustedCodeSigning !== true || report.notarized !== target.notarized) {
+        report.trustedCodeSigning !== true || report.notarized !== target.notarized ||
+        report.penguinGoUrl !== penguinGoUrl) {
       throw new Error("Invalid signing verification report: " + target.report);
     }
     if (!Array.isArray(report.assets) || report.assets.length !== target.assets.length) {
@@ -41,6 +43,7 @@ export function verifySigningReports(directory, commit) {
 }
 
 export function prepareRelease(directory, tag, commit, version) {
+  const release = releaseTarget(version);
   if (tag !== "desktop-v" + version || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) throw new Error("Release tag/package version mismatch");
   if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("Release source must be a full commit SHA");
   const allowed = new Set([...requiredAssets, ...requiredAssets.map(file => file + ".blockmap"),
@@ -49,14 +52,14 @@ export function prepareRelease(directory, tag, commit, version) {
   for (const entry of files) if (!entry.isFile() || !allowed.has(entry.name)) throw new Error("Unexpected release input: " + entry.name);
   for (const file of requiredAssets) if (!fs.existsSync(path.join(directory,file))) throw new Error("Missing release asset: " + file);
   // Reports are emitted only after platform signature/notarization verification.
-  verifySigningReports(directory, commit);
+  verifySigningReports(directory, commit, release.penguinGoUrl);
   const assets = files.map(entry => {
     const bytes = fs.readFileSync(path.join(directory,entry.name));
     if (!bytes.length) throw new Error("Empty release asset: " + entry.name);
     return {name:entry.name, size:bytes.length, sha256:crypto.createHash("sha256").update(bytes).digest("hex")};
   }).sort((a,b) => a.name.localeCompare(b.name));
   fs.writeFileSync(path.join(directory,"SHA256SUMS.txt"), assets.map(asset => asset.sha256 + "  " + asset.name).join("\n") + "\n");
-  fs.writeFileSync(path.join(directory,"release-manifest.json"), JSON.stringify({version, tag, sourceCommit:commit, penguinGoUrl:"https://go.penguin.ooo", trustedCodeSigning:true, notarized:true, assets}, null, 2) + "\n");
+  fs.writeFileSync(path.join(directory,"release-manifest.json"), JSON.stringify({version, tag, sourceCommit:commit, releaseChannel:release.channel, penguinGoUrl:release.penguinGoUrl, trustedCodeSigning:true, notarized:true, assets}, null, 2) + "\n");
   return assets;
 }
 

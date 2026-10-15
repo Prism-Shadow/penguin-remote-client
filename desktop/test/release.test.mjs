@@ -6,12 +6,13 @@ import crypto from "node:crypto";
 import { prepareRelease, requiredAssets, signingTargets, verifySigningReports } from "../../scripts/prepare-release.mjs";
 import { verifyUploadedRelease } from "../../scripts/verify-uploaded-release.mjs";
 import { resourcesDirectory } from "../scripts/verify-package.mjs";
+import { productionGoUrl, releaseTarget, stagingGoUrl } from "../../scripts/release-target.mjs";
 
-function writeSigningReports(dir, commit = "a".repeat(40)) {
+function writeSigningReports(dir, commit = "a".repeat(40), penguinGoUrl = productionGoUrl) {
   for (const target of signingTargets) {
     fs.writeFileSync(path.join(dir, target.report), JSON.stringify({
       platform: target.platform, arch: target.arch, sourceCommit: commit,
-      trustedCodeSigning: true, notarized: target.notarized,
+      trustedCodeSigning: true, notarized: target.notarized, penguinGoUrl,
       assets: target.assets.map(name => ({
         name, sha256: crypto.createHash("sha256").update(fs.readFileSync(path.join(dir, name))).digest("hex"),
       })),
@@ -20,6 +21,30 @@ function writeSigningReports(dir, commit = "a".repeat(40)) {
 }
 
 describe("desktop release gates", () => {
+  it("reserves explicit staging versions without changing production defaults", () => {
+    expect(releaseTarget("0.1.3")).toEqual({ channel: "production", penguinGoUrl: productionGoUrl });
+    expect(releaseTarget("0.1.3-staging.1")).toEqual({ channel: "staging", penguinGoUrl: stagingGoUrl });
+    for (const version of ["0.1.3-staging", "0.1.3-Staging.1", "0.1.3-staging.01", "0.1.3-staging.1.extra", "invalid"]) {
+      expect(() => releaseTarget(version)).toThrow();
+    }
+  });
+  it("requires staging signing reports and records the staging service in the manifest", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "remote-staging-release-test-"));
+    try {
+      for (const name of requiredAssets) fs.writeFileSync(path.join(dir, name), "staging-signed-artifact");
+      writeSigningReports(dir);
+      expect(() => prepareRelease(dir, "desktop-v0.1.3-staging.1", "a".repeat(40), "0.1.3-staging.1")).toThrow();
+      writeSigningReports(dir, "a".repeat(40), stagingGoUrl);
+      expect(() => verifySigningReports(dir, "a".repeat(40))).toThrow();
+      prepareRelease(dir, "desktop-v0.1.3-staging.1", "a".repeat(40), "0.1.3-staging.1");
+      const manifest = JSON.parse(fs.readFileSync(path.join(dir, "release-manifest.json"), "utf8"));
+      expect(manifest.releaseChannel).toBe("staging");
+      expect(manifest.penguinGoUrl).toBe(stagingGoUrl);
+    } finally {
+      if (!path.resolve(dir).startsWith(path.resolve(os.tmpdir()) + path.sep + "remote-staging-release-test-")) throw new Error("Unsafe test cleanup path");
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
   it("uses the architecture names emitted by Linux package formats", () => {
     expect(requiredAssets).toContain("penguin-remote-linux-x86_64.AppImage");
     expect(requiredAssets).toContain("penguin-remote-linux-amd64.deb");
@@ -90,6 +115,7 @@ describe("desktop release gates", () => {
           { ...good, trustedCodeSigning: false },
           { ...good, platform: "linux" },
           { ...good, arch: "unknown" },
+          { ...good, penguinGoUrl: stagingGoUrl },
           { ...good, assets: [] },
           { ...good, assets: good.assets.map(asset => ({ ...asset, sha256: "0".repeat(64) })) },
           ...(target.notarized ? [{ ...good, notarized: false }] : []),
