@@ -149,6 +149,32 @@ func TestRuntimeRejectsAuthorizationFailuresBeforeSessionProbe(t *testing.T) {
 	}
 }
 
+func TestRuntimeReportsStoppedHarnessAsUnavailable(t *testing.T) {
+	for _, missingToken := range []bool{false, true} {
+		t.Run(fmt.Sprintf("missing-token=%t", missingToken), func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				t.Error("stopped Harness received a request")
+			}))
+			cfg := runtimeConfig(t, server.URL)
+			server.Close()
+			if missingToken {
+				if err := os.Remove(filepath.Join(cfg.Harness.DataRoot, "api-token")); err != nil {
+					t.Fatal(err)
+				}
+			}
+			rt, err := newClientRuntime(context.Background(), cfg)
+			if rt != nil {
+				rt.Close()
+				t.Fatal("stopped Harness started runtime")
+			}
+			var startup *harnessStartupError
+			if !errors.As(err, &startup) || startup.code != "harness_unavailable" {
+				t.Fatalf("stopped Harness reported as authentication failure: %v", err)
+			}
+		})
+	}
+}
+
 func TestStatusExposesLoginModeWithoutConnectionError(t *testing.T) {
 	for _, mode := range []harnessapi.LoginMode{harnessapi.LoginAutomatic, harnessapi.LoginManual} {
 		app, _, server := newTestApp(t, nil, "")

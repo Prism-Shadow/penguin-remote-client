@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -51,6 +53,13 @@ func newClientRuntimeForMode(ctx context.Context, cfg remote.Config, selected ha
 	}
 	access, err := remote.ResolveHarnessAccess(ctx, cfg.Harness.LocalURL, cfg.Harness.DataRoot)
 	if err != nil {
+		// A stopped local service is not an authentication failure. Probe only
+		// after failure; an open port never replaces the token validation above.
+		conn, dialErr := (&net.Dialer{Timeout: 2 * time.Second}).DialContext(ctx, "tcp", net.JoinHostPort(targetBackend.IP, strconv.Itoa(targetBackend.Port)))
+		if dialErr != nil {
+			return nil, &harnessStartupError{code: "harness_unavailable", err: fmt.Errorf("connect to local Harness: %w", dialErr)}
+		}
+		_ = conn.Close()
 		return nil, &harnessStartupError{code: "harness_authorization_failed", err: fmt.Errorf("resolve local Harness authorization: %w", err)}
 	}
 	harnessClient, err := harnessapi.NewClient(
