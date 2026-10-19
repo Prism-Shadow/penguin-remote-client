@@ -246,7 +246,7 @@ const translations = {
     invalid_identifier:"连接授权标识无效，请停止后重新开启；如持续出现，请联系客服。",
     invalid_sequence:"连接授权版本无效，请停止后重新开启；如持续出现，请联系客服。",
     invalid_operation:"服务器鉴权协议不匹配，请联系客服。",
-subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更新",confirming:"正在确认",connecting:"正在连接",connected:"已连接",proxy_wait:"正在接管",reconnecting:"正在重连",stopped:"已停止",grant_superseded:"已被接管",subscription_expired:"订阅到期",grant_revoked:"连接授权已释放，请主动开启以重新授权。",device_revoked:"设备身份已撤销，请重新登录。",device_credential_invalid:"设备访问凭证已失效，请重新登录。",protocol_upgrade_required:"升级后请先重新登录 Penguin Go。旧授权不能用于新版连接。",subscription_required:"请订阅 Remote 后再开启。",slot_over_quota:"当前槽位超过订阅额度，请恢复额度后刷新。",grant_credential_invalid:"连接授权校验失败，请主动重新开启。",proxy_mismatch:"服务器代理配置不匹配，请联系客服。",plugin_secret_invalid:"服务器鉴权配置有误，请联系客服。",service_unavailable:"暂时无法连接，正在自动重试。您可以随时停止。",harness_unavailable:"无法连接本地 Harness，请启动后重试。",save_failed:"无法保存设置，请检查配置目录是否可写。",login_failed:"登录未完成，请重新登录。",grant_key_rotated:"服务器授权密钥已更新，请主动重新开启。",request_id_conflict:"开启请求发生冲突，请停止后重新开启。",invalid_request:"服务器返回的授权不完整，请联系客服。",
+subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更新",confirming:"正在确认",connecting:"正在连接",connected:"已连接",proxy_wait:"正在接管",reconnecting:"正在重连",stopped:"已停止",grant_superseded:"已被接管",subscription_expired:"订阅到期",grant_revoked:"连接授权已释放，请主动开启以重新授权。",device_revoked:"设备身份已撤销，请重新登录。",device_credential_invalid:"设备访问凭证已失效，请重新登录。",protocol_upgrade_required:"升级后请先重新登录 Penguin Go。旧授权不能用于新版连接。",subscription_required:"请订阅 Remote 后再开启。",slot_over_quota:"当前槽位超过订阅额度，请恢复额度后刷新。",grant_credential_invalid:"连接授权校验失败，请主动重新开启。",proxy_mismatch:"服务器代理配置不匹配，请联系客服。",plugin_secret_invalid:"服务器鉴权配置有误，请联系客服。",service_unavailable:"暂时无法连接，正在自动重试。您可以随时停止。",harness_unavailable:"尚未连接到本机 Harness。请先启动 Harness，Remote 会自动重试。",save_failed:"无法保存设置，请检查配置目录是否可写。",login_failed:"登录未完成，请重新登录。",grant_key_rotated:"服务器授权密钥已更新，请主动重新开启。",request_id_conflict:"开启请求发生冲突，请停止后重新开启。",invalid_request:"服务器返回的授权不完整，请联系客服。",
     checkingLogin:'正在检查登录状态', checkingService:'正在检查服务状态', overview:'远程访问概况',
     supportGroup:'客服微信群', supportQrAlt:'客服微信群二维码', supportQrHint:'微信扫码加入客服群',
     preferences:'偏好设置', theme:'主题', language:'语言', systemTheme:'跟随系统', lightTheme:'浅色', darkTheme:'深色',
@@ -261,8 +261,8 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     connectionStatus:'连接状态', subscriptionStatusTitle:'订阅状态', discoveryResult:'发现结果',
     authReady:'本机连接已就绪', authError:'无法连接本机 Harness', authUnchecked:'开启时验证本机连接',
     harnessLoginAutomatic:'自动登录可用',
-    harness_authorization_failed:'本机 Harness 认证失败。请检查 api-token 是否存在、有效，以及数据目录是否与所选 Harness 匹配。',
-    harness_session_failed:'Harness 自动登录失败。请检查 Harness 状态后重试；本次连接不会自动切换为手动登录。',
+    harness_authorization_failed:'无法验证本机 Harness 的访问权限。请重启 Harness 并重新扫描后重试。',
+    harness_session_failed:'暂时无法为公网页面完成 Harness 登录。请重启 Harness 后重新开启远程访问。',
     runnerStarting:'正在启动', runnerRunning:'已开启', runnerStopping:'正在停止',
     runnerRecovering:'正在恢复连接', runnerError:'连接遇到问题', runnerStopped:'未开启',
     runnerConnected:'已连接', runnerConnecting:'正在连接', runnerReconnecting:'正在重连',
@@ -278,7 +278,7 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     manualLocalPlaceholder:'例如 http://localhost:7364', manualDataPlaceholder:'自动检查常见数据目录',
     recoveringNotice:'连接暂时中断，正在等待网络并重连原授权；恢复成功后会自动重新开启。',
     connectingNotice:'正在连接公网服务器，连接成功后即可通过公网地址访问。',
-    reconnectingNotice:'公网连接暂时中断，正在自动重连；无需重新登录。',
+    reconnectingNotice:'公网连接暂时中断，正在自动重连。',
     errorLeaseExpired:'连接已中断。请重新开启远程访问；无需重新登录。',
     errorTakenOver:'这条远程连接已被其他设备接管。如需接管回来，请主动再次开启。',
     errorSubscriptionExpired:'Remote 服务已到期。续订后刷新订阅信息即可恢复资格。',
@@ -310,7 +310,7 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     invalid_identifier:"Connection authorization ID is invalid. Stop and turn access on again; contact support if it persists.",
     invalid_sequence:"Connection authorization version is invalid. Stop and turn access on again; contact support if it persists.",
     invalid_operation:"Server authorization protocol does not match. Contact support.",
-subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription information needs updating",confirming:"Confirming",connecting:"Connecting",connected:"Connected",proxy_wait:"Taking over",reconnecting:"Reconnecting",stopped:"Stopped",grant_superseded:"Taken over",subscription_expired:"Subscription expired",grant_revoked:"Connection authorization was released. Turn on access to authorize again.",device_revoked:"Device identity was revoked. Sign in again.",device_credential_invalid:"Device access expired. Sign in again.",protocol_upgrade_required:"Sign in to Penguin Go after upgrading. Previous authorization cannot be used.",subscription_required:"Subscribe to Remote before turning on access.",slot_over_quota:"This slot exceeds your subscription allowance. Restore the allowance and refresh.",grant_credential_invalid:"Connection authorization failed. Turn access on again.",proxy_mismatch:"Server proxy configuration does not match. Contact support.",plugin_secret_invalid:"Server authorization is misconfigured. Contact support.",service_unavailable:"Temporarily unavailable. Retrying automatically; you can stop at any time.",harness_unavailable:"Cannot connect to local Harness. Start it and retry.",save_failed:"Cannot save settings. Check configuration directory permissions.",login_failed:"Sign-in did not complete. Try again.",grant_key_rotated:"Server authorization changed. Turn access on again.",request_id_conflict:"Start request conflicts. Stop and turn access on again.",invalid_request:"The server returned incomplete authorization. Contact support.",
+subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription information needs updating",confirming:"Confirming",connecting:"Connecting",connected:"Connected",proxy_wait:"Taking over",reconnecting:"Reconnecting",stopped:"Stopped",grant_superseded:"Taken over",subscription_expired:"Subscription expired",grant_revoked:"Connection authorization was released. Turn on access to authorize again.",device_revoked:"Device identity was revoked. Sign in again.",device_credential_invalid:"Device access expired. Sign in again.",protocol_upgrade_required:"Sign in to Penguin Go after upgrading. Previous authorization cannot be used.",subscription_required:"Subscribe to Remote before turning on access.",slot_over_quota:"This slot exceeds your subscription allowance. Restore the allowance and refresh.",grant_credential_invalid:"Connection authorization failed. Turn access on again.",proxy_mismatch:"Server proxy configuration does not match. Contact support.",plugin_secret_invalid:"Server authorization is misconfigured. Contact support.",service_unavailable:"Temporarily unavailable. Retrying automatically; you can stop at any time.",harness_unavailable:"Local Harness is not connected yet. Start Harness; Remote will retry automatically.",save_failed:"Cannot save settings. Check configuration directory permissions.",login_failed:"Sign-in did not complete. Try again.",grant_key_rotated:"Server authorization changed. Turn access on again.",request_id_conflict:"Start request conflicts. Stop and turn access on again.",invalid_request:"The server returned incomplete authorization. Contact support.",
     checkingLogin:'Checking sign-in', checkingService:'Checking subscription', overview:'Remote access overview',
     supportGroup:'Support', supportQrAlt:'Support WeChat group QR code', supportQrHint:'Scan with WeChat to join the support group',
     preferences:'Preferences', theme:'Theme', language:'Language', systemTheme:'System', lightTheme:'Light', darkTheme:'Dark',
@@ -325,8 +325,8 @@ subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription inf
     connectionStatus:'Connection status', subscriptionStatusTitle:'Subscription', discoveryResult:'Discovery',
     authReady:'Local connection is ready', authError:'Cannot connect to local Harness', authUnchecked:'Local access is checked when starting',
     harnessLoginAutomatic:'Automatic sign-in available',
-    harness_authorization_failed:'Local Harness authentication failed. Check that api-token exists, is valid, and its data directory matches the selected Harness.',
-    harness_session_failed:'Harness automatic sign-in failed. Check Harness and retry; this connection will not switch to manual sign-in automatically.',
+    harness_authorization_failed:'Could not verify access to local Harness. Restart Harness, scan again, and retry.',
+    harness_session_failed:'Could not sign in to Harness for the public page. Restart Harness, then turn remote access off and on again.',
     runnerStarting:'Starting', runnerRunning:'On', runnerStopping:'Stopping',
     runnerRecovering:'Restoring connection', runnerError:'Connection issue', runnerStopped:'Off',
     runnerConnected:'Connected', runnerConnecting:'Connecting', runnerReconnecting:'Reconnecting',
@@ -342,7 +342,7 @@ subscriptionRefresh:"Refresh subscription",subscriptionPending:"Subscription inf
     manualLocalPlaceholder:'For example http://localhost:7364', manualDataPlaceholder:'Common data directories are checked automatically',
     recoveringNotice:'Connection interrupted. Waiting for the network and reconnecting with the original authorization; access will turn back on automatically.',
     connectingNotice:'Connecting to the public server. The public address will work once connected.',
-    reconnectingNotice:'The public connection was interrupted and is reconnecting automatically. You do not need to sign in again.',
+    reconnectingNotice:'The public connection was interrupted and is reconnecting automatically.',
     errorLeaseExpired:'Connection stopped. Turn remote access on again; you do not need to sign in again.',
     errorTakenOver:'Remote access is now active on another device. Turn access on again to take over here.',
     errorSubscriptionExpired:'Your Remote subscription has expired. Renew it, then refresh subscription information.',
@@ -564,9 +564,10 @@ function render(s) {
   const error = document.getElementById('lastError');
   const retryWarning = String(s.lastError || '').startsWith('Remote slot lease renewal failed, retrying in ');
   const connectionNotice = running && !connected && (!s.lastError || retryWarning);
+  const waitingForHarness = Boolean(s.desired) && s.lastError === 'harness_unavailable';
   error.textContent = recovering ? t('recoveringNotice') : connectionNotice ? t(s.connectionStatus === 'reconnecting' ? 'reconnectingNotice' : 'connectingNotice') : friendlyError(s.lastError);
   error.classList.toggle('visible', recovering || connectionNotice || Boolean(s.lastError));
-  error.classList.toggle('info', recovering || connectionNotice);
+  error.classList.toggle('info', recovering || connectionNotice || waitingForHarness);
 }
 
 function showError(err) {
