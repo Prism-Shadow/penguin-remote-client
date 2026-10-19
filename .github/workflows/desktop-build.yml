@@ -41,6 +41,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       penguin_go_url: ${{ steps.version.outputs.penguin_go_url }}
       release_channel: ${{ steps.version.outputs.release_channel }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      make_latest: ${{ steps.version.outputs.make_latest }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -59,6 +61,7 @@ jobs:
             if (process.env.GITHUB_REF_TYPE === "tag" && process.env.GITHUB_REF_NAME !== "desktop-v" + version) throw new Error("Tag/package version mismatch");
             fs.appendFileSync(process.env.GITHUB_OUTPUT, "version=" + version + "\n");
             fs.appendFileSync(process.env.GITHUB_OUTPUT, "penguin_go_url=" + target.penguinGoUrl + "\nrelease_channel=" + target.channel + "\n");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, "prerelease=" + target.prerelease + "\nmake_latest=" + target.makeLatest + "\n");
           '
       - uses: actions/setup-go@v6
         with:
@@ -183,7 +186,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/prepare-release.mjs --dir release-assets --tag "$RELEASE_TAG" --commit "$GITHUB_SHA"
-      - name: Upload and publish signed prerelease
+      - name: Upload, verify and publish signed release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -191,6 +194,8 @@ jobs:
           RELEASE_VERSION: ${{ needs.check.outputs.version }}
           RELEASE_GO_URL: ${{ needs.check.outputs.penguin_go_url }}
           RELEASE_CHANNEL: ${{ needs.check.outputs.release_channel }}
+          RELEASE_PRERELEASE: ${{ needs.check.outputs.prerelease }}
+          RELEASE_LATEST: ${{ needs.check.outputs.make_latest }}
         run: |
           RELEASE_TITLE="Penguin Remote $RELEASE_VERSION"
           if [ "$RELEASE_CHANNEL" = staging ]; then
@@ -218,4 +223,4 @@ jobs:
           RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq '.apiUrl')"
           gh api "$RELEASE_API_URL" > uploaded-release.json
           node scripts/verify-uploaded-release.mjs release-assets uploaded-release.json
-          gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease="$RELEASE_PRERELEASE" --latest="$RELEASE_LATEST"
