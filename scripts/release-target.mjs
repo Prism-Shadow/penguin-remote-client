@@ -7,5 +7,11 @@ export function releaseTarget(version) {
   }
   const staging = /^\d+\.\d+\.\d+-staging\.(?:0|[1-9]\d*)$/.test(version);
   if (/staging/i.test(version) && !staging) throw new Error("Invalid staging release version");
-  return { channel: staging ? "staging" : "production", penguinGoUrl: staging ? stagingGoUrl : productionGoUrl };
+  const prerelease = version.includes("-");
+  return {
+    channel: staging ? "staging" : "production",
+    penguinGoUrl: staging ? stagingGoUrl : productionGoUrl,
+    prerelease,
+    makeLatest: !prerelease,
+  };
 }

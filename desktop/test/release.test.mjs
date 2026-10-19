@@ -22,8 +22,9 @@ function writeSigningReports(dir, commit = "a".repeat(40), penguinGoUrl = produc
 
 describe("desktop release gates", () => {
   it("reserves explicit staging versions without changing production defaults", () => {
-    expect(releaseTarget("0.1.3")).toEqual({ channel: "production", penguinGoUrl: productionGoUrl });
-    expect(releaseTarget("0.1.3-staging.1")).toEqual({ channel: "staging", penguinGoUrl: stagingGoUrl });
+    expect(releaseTarget("0.1.3")).toEqual({ channel: "production", penguinGoUrl: productionGoUrl, prerelease: false, makeLatest: true });
+    expect(releaseTarget("0.1.3-staging.1")).toEqual({ channel: "staging", penguinGoUrl: stagingGoUrl, prerelease: true, makeLatest: false });
+    expect(releaseTarget("0.1.4-beta.1")).toEqual({ channel: "production", penguinGoUrl: productionGoUrl, prerelease: true, makeLatest: false });
     for (const version of ["0.1.3-staging", "0.1.3-Staging.1", "0.1.3-staging.01", "0.1.3-staging.1.extra", "invalid"]) {
       expect(() => releaseTarget(version)).toThrow();
     }

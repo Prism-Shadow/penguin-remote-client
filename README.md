@@ -109,8 +109,9 @@ See [source boundaries](docs/source-boundaries.md) for provenance, shared-code
 maintenance and integration-test ownership.
 
 The workflow checks main/PR source and packages all supported targets for manual
-runs or matching version tags. A successful version-tag matrix publishes an
-signed Windows and notarized macOS prerelease with checksums and a source manifest.
+runs or matching version tags. A successful version-tag matrix publishes a
+signed Windows and notarized macOS release with checksums and a source manifest.
+Stable versions are published as Latest; prerelease versions remain prereleases.
 See [desktop releases](docs/releases.md).
 
 ## License

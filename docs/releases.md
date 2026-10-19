@@ -27,7 +27,9 @@ never relabel a staging binary as a production build.
    and stapling. Missing credentials or failed verification stop the release.
 6. Only a complete matrix prepares a draft prerelease, uploads all seven required
    installer/archive assets plus signing verification reports, checksums and source
-   manifest, then publishes it. Reports bind verified artifacts to their final
+   manifest, then verifies the uploaded files before publication. Stable versions
+   become full releases marked Latest; versions with a prerelease suffix remain
+   prereleases and do not become Latest. Reports bind verified artifacts to their final
    SHA-256 digests and the source commit before the release manifest claims signing.
 
 Pull requests and main pushes run checks, not releases. Manual workflow runs
@@ -77,7 +79,8 @@ gates run before publication; failed platform builds leave no published release.
 
 ## Acceptance Boundaries
 
-Published releases remain prereleases. Historical unsigned versions are immutable;
+Stable releases become Latest only after the full signing and upload checks pass.
+Historical unsigned versions are immutable;
 publish signed builds under a new version instead of replacing their assets.
 Unsigned manual builds may carry ad-hoc macOS signatures; they are not Developer ID
 signed or notarized and cannot pass the signed release gates. Signing does not
