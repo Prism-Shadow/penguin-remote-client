@@ -82,7 +82,9 @@ describe("client action notifications", () => {
     expect(ui.messages()).toEqual(["扫描完成，发现 1 个本机 Harness"]);
     expect(ui.toasts()[0]!.dataset.kind).toBe("success");
     expect(ui.element("rescan").disabled).toBe(false);
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(2999);
+    expect(ui.messages()).toHaveLength(1);
+    vi.advanceTimersByTime(1);
     expect(ui.messages()).toEqual([]);
   });
 
@@ -105,7 +107,7 @@ describe("client action notifications", () => {
     ui.render();
     expect(ui.messages()).toEqual([message]);
     expect(ui.element("lastError").classes.has("visible")).toBe(false);
-    vi.advanceTimersByTime(6999);
+    vi.advanceTimersByTime(4999);
     expect(ui.messages()).toEqual([message]);
     vi.advanceTimersByTime(1);
     expect(ui.messages()).toEqual([]);
@@ -141,7 +143,7 @@ describe("client action notifications", () => {
     ui.render({desired: true, runnerStatus: "running", connectionStatus: "connected"});
     expect(ui.messages()).toEqual(["远程访问已连接"]);
     ui.render({desired: true, runnerStatus: "running", connectionStatus: "connected"});
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(3000);
     expect(ui.messages()).toEqual([]);
   });
 
@@ -157,6 +159,50 @@ describe("client action notifications", () => {
     expect(ui.toasts()[0]!.dataset.kind).toBe("error");
     expect(ui.messages()[0]).toMatch(/^停止远程访问失败：/);
     expect(ui.messages()[0]).not.toBe("远程访问已停止");
+  });
+
+  it("replaces an unfinished start notification when the user stops connecting", async () => {
+    const ui = renderer();
+    ui.response({...status, desired: true, runnerStatus: "starting", connectionStatus: "confirming"});
+    const toggle = ui.element("remoteToggle");
+    toggle.checked = true;
+    await toggle.onchange({target: toggle});
+    expect(ui.messages()).toEqual(["正在开启远程访问…"]);
+    ui.response(status);
+    toggle.checked = false;
+    await toggle.onchange({target: toggle});
+    expect(ui.messages()).toEqual(["远程访问已停止"]);
+    expect(ui.toasts()[0]!.dataset.kind).toBe("success");
+    vi.advanceTimersByTime(3000);
+    expect(ui.messages()).toEqual([]);
+  });
+
+  it.each(["zh", "en"])("reports a successful stop while server cleanup is pending in %s", async language => {
+    const ui = renderer();
+    ui.render({desired: true, runnerStatus: "running", connectionStatus: "connected"});
+    ui.response({...status, language, cancelPending: true, lastError: "cancel_pending"});
+    const toggle = ui.element("remoteToggle");
+    toggle.checked = false;
+    await toggle.onchange({target: toggle});
+    expect(ui.messages()).toEqual([language === "zh" ? "远程访问已停止" : "Remote access stopped"]);
+    expect(ui.toasts()[0]!.dataset.kind).toBe("success");
+    expect(ui.element("lastError").classes.has("info")).toBe(true);
+    expect(ui.element("lastError").classes.has("visible")).toBe(true);
+    expect(toggle.checked).toBe(false);
+    vi.advanceTimersByTime(3000);
+    expect(ui.messages()).toEqual([]);
+  });
+
+  it("continues waiting for a queued start while the previous connection is being cleaned up", async () => {
+    const ui = renderer();
+    ui.response({...status, desired: true, runnerStatus: "confirming", connectionStatus: "confirming", cancelPending: true, lastError: "cancel_pending"});
+    const toggle = ui.element("remoteToggle");
+    toggle.checked = true;
+    await toggle.onchange({target: toggle});
+    expect(ui.messages()).toEqual(["正在开启远程访问…"]);
+    expect(ui.toasts()[0]!.dataset.kind).toBe("loading");
+    ui.render({desired: true, runnerStatus: "running", connectionStatus: "connected"});
+    expect(ui.messages()).toEqual(["远程访问已连接"]);
   });
 
   it("acknowledges cleanup requests without claiming cleanup has completed", async () => {
@@ -212,7 +258,7 @@ describe("client action notifications", () => {
   it("replaces a pending toast's timer and bounds the stack", () => {
     const ui = renderer();
     runInContext("notify('remoteStoppedToast', 'success', {}, 99)", ui.context);
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(2000);
     runInContext("notify('scanningToast', 'loading', {}, 99)", ui.context);
     vi.advanceTimersByTime(5000);
     expect(ui.messages()).toEqual(["正在扫描本机 Harness…"]);

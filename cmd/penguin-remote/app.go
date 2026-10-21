@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -28,6 +28,9 @@ var supportWechatQR []byte
 
 //go:embed assets/app.html
 var appPageHTML string
+
+//go:embed assets/guides/*.png assets/guides/*.svg
+var guideImages embed.FS
 
 type appServer struct {
 	mu sync.Mutex
@@ -175,6 +178,7 @@ func (a *appServer) routes() http.Handler {
 	mux.HandleFunc("/", a.handleIndex)
 	mux.HandleFunc("/assets/penguin-logo.svg", a.handlePenguinLogo)
 	mux.HandleFunc("/assets/wechat-support-qr.png", a.handleSupportWechatQR)
+	mux.Handle("/assets/guides/", http.FileServer(http.FS(guideImages)))
 	mux.HandleFunc("/api/status", a.handleStatus)
 	mux.HandleFunc("/api/subscription/refresh", a.handleSubscriptionRefresh)
 	mux.HandleFunc("/api/wake", a.handleWake)
