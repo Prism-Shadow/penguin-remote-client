@@ -59,7 +59,8 @@
     .header-menu { position: relative; display: inline-flex; min-height: 32px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
     .icon-button { display: inline-flex; width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; }
     .icon-button:hover, .icon-button[aria-expanded="true"] { background: var(--surface); color: var(--link); }
-    .icon-button svg, .option-segment svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .icon-button svg, .option-segment svg, .guide-trigger svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .guide-trigger { gap: 6px; white-space: nowrap; }
     .header-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--surface) 82%, var(--border-strong)); }
     .header-popover[hidden] { display: none; }
     .header-popover::before { position: absolute; top: -6px; right: 10px; width: 10px; height: 10px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: var(--surface); content: ""; transform: rotate(45deg); }
@@ -108,6 +109,86 @@
     .notice { display: none; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--notice-border); border-radius: 6px; background: var(--notice-bg); color: var(--danger); font-size: 12px; line-height: 18px; }
     .notice.visible { display: block; }
     .notice.info { border-color: var(--border-strong); background: var(--surface-subtle); color: var(--text-soft); }
+    .toast-region { position: fixed; top: 24px; left: 50%; z-index: 100; display: flex; width: max-content; max-width: calc(100vw - 32px); flex-direction: column; align-items: center; gap: 10px; transform: translateX(-50%); pointer-events: none; }
+    .toast { display: flex; max-width: min(520px, calc(100vw - 32px)); align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid var(--border); border-radius: 28px; background: var(--surface); color: var(--text); box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 14%, transparent); font-size: 14px; line-height: 22px; animation: toast-enter .18s ease-out; }
+    .toast-dot { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: var(--success); }
+    .toast[data-kind="warning"] .toast-dot { background: var(--warning); }
+    .toast[data-kind="error"] .toast-dot { background: var(--danger); }
+    .toast[data-kind="info"] .toast-dot { background: var(--link); }
+    .toast[data-kind="loading"] .toast-dot { width: 13px; height: 13px; flex-basis: 13px; border: 2px solid var(--border-strong); border-top-color: var(--link); background: transparent; animation: toast-spin .7s linear infinite; }
+    .toast-message { min-width: 0; overflow-wrap: anywhere; }
+    @keyframes toast-enter { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toast-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .toast, .toast[data-kind="loading"] .toast-dot { animation: none; } }
+    .guide { display: none; width: min(1080px, calc(100vw - 40px)); max-width: none; max-height: calc(100dvh - 40px); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 24px 64px color-mix(in srgb, var(--text) 18%, transparent); }
+    .guide[open] { display: flex; flex-direction: column; }
+    .guide::backdrop { background: color-mix(in srgb, var(--text) 40%, transparent); backdrop-filter: blur(2px); }
+    .guide-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 28px 14px; }
+    .guide-header h2 { margin: 0; font-size: 22px; line-height: 30px; }
+    .guide-close { width: 30px; min-height: 30px; font-size: 24px; }
+    .guide-body { min-height: 0; padding: 0 28px 24px; overflow-y: auto; overscroll-behavior: contain; }
+    .guide-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 22px; padding: 0 0 18px; border-bottom: 1px solid var(--border); }
+    .guide-steps button { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 9px; padding: 10px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 13px; cursor: pointer; }
+    .guide-steps button:hover { background: var(--surface-subtle); }
+    .guide-steps button[aria-selected="true"] { background: var(--surface-subtle); color: var(--link); font-weight: 650; }
+    .guide-step-number { display: grid; width: 26px; height: 26px; flex: 0 0 26px; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; font-weight: 600; }
+    .guide-steps [aria-selected="true"] .guide-step-number { border-color: var(--link); background: var(--link); color: var(--surface); }
+    .guide-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; gap: 26px; }
+    .guide-figure { min-width: 0; margin: 0; }
+    .guide-figure figcaption { margin-bottom: 10px; color: var(--text-soft); font-size: 13px; font-weight: 600; }
+    .guide-image-button { display: block; width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); cursor: zoom-in; }
+    .guide-image-button:hover { border-color: var(--link); }
+    .guide-screenshot-stage { position: relative; display: block; }
+    .guide-image { display: block; width: 100%; height: auto; border-radius: 5px; }
+    .guide-callout { position: absolute; border: 2px solid var(--danger); border-radius: 5px; pointer-events: none; }
+    .guide-launch { padding: 28px 20px 22px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-subtle); text-align: center; }
+    .guide-harness-icon { display: block; width: 88px; height: 88px; margin: 0 auto 14px; border-radius: 20px; }
+    .guide-launch h3 { margin: 0 0 24px; font-size: 18px; }
+    .guide-launch-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+    .guide-launch-mode { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 10px; padding: 18px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-soft); font-size: 13px; }
+    .guide-launch-mode svg { width: 28px; height: 28px; fill: none; stroke: var(--text-soft); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .guide-launch-mode code { color: var(--link); font-size: 12px; }
+    .guide-quickstart { color: var(--link); font-size: 13px; text-underline-offset: 3px; }
+    .guide-inline-button { display: inline-flex; align-items: center; padding: 1px 7px; border: 1px solid var(--primary); border-radius: 5px; background: var(--primary); color: var(--button-text); font-size: 12px; font-weight: 600; line-height: 23px; vertical-align: middle; }
+    .guide-inline-switch { position: relative; display: inline-block; width: 38px; height: 22px; border: 1px solid var(--success); border-radius: 999px; background: var(--success); vertical-align: middle; }
+    .guide-inline-switch::after { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #ffffff; content: ''; }
+    .guide-inline-connected { color: var(--success); }
+    .guide-inline-url { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+    .guide-inline-command { padding: 2px 5px; border-radius: 4px; background: var(--surface-subtle); color: var(--link); font-size: 12px; }
+    .guide-image-hint { display: block; margin-top: 9px; color: var(--text-muted); font-size: 12px; text-align: right; }
+    .guide-image-note { margin: 10px 0 0; color: var(--text-muted); font-size: 12px; line-height: 18px; }
+    .guide-instructions h3 { margin: 0 0 10px; font-size: 20px; line-height: 28px; }
+    .guide-intro { margin: 0 0 20px; color: var(--text-muted); font-size: 13px; line-height: 21px; }
+    .guide-items { display: grid; gap: 18px; margin: 0; padding: 0; list-style: none; counter-reset: guide-item; }
+    .guide-items li { display: flex; align-items: flex-start; gap: 10px; counter-increment: guide-item; }
+    .guide-items li::before { display: grid; width: 24px; height: 24px; flex: 0 0 24px; place-items: center; border: 1px solid var(--border-strong); border-radius: 7px; color: var(--link); font-size: 12px; font-weight: 650; content: counter(guide-item); }
+    .guide-items strong { display: block; font-size: 14px; line-height: 24px; }
+    .guide-items p { margin: 3px 0 0; color: var(--text-soft); font-size: 13px; line-height: 21px; }
+    .guide-note { margin: 20px 0 0; padding-left: 10px; border-left: 2px solid var(--border-strong); color: var(--text-muted); font-size: 12px; line-height: 20px; }
+    .guide-footer { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 28px; border-top: 1px solid var(--border); }
+    .guide-page { color: var(--text-muted); font-size: 12px; }
+    .guide-footer-actions { display: flex; gap: 8px; }
+    .guide [hidden] { display: none !important; }
+    .guide.is-zoomed .guide-layout { grid-template-columns: 1fr; }
+    .guide.is-zoomed .guide-figure { width: 100%; max-width: 920px; margin: auto; }
+    .guide.is-zoomed .guide-image { max-height: none; }
+    .guide.is-zoomed .guide-image-button { cursor: zoom-out; }
+    @media (min-width: 681px) and (max-width: 1000px) and (max-height: 680px) {
+      .guide-launch { padding-top: 22px; padding-bottom: 16px; }
+    }
+    @media (max-width: 680px) {
+      .guide { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); border-radius: 12px; }
+      .guide-header { padding: 16px 18px 12px; }
+      .guide-header h2 { font-size: 19px; }
+      .guide-body { padding: 0 18px 20px; }
+      .guide-steps { gap: 4px; margin-bottom: 18px; }
+      .guide-steps button { flex-direction: column; gap: 6px; padding: 8px 3px; font-size: 12px; text-align: center; }
+      .guide-layout { grid-template-columns: 1fr; gap: 20px; }
+      .guide-instructions h3 { font-size: 18px; }
+      .guide-intro { margin-bottom: 14px; }
+      .guide-items { gap: 14px; }
+      .guide-footer { padding: 14px 18px; }
+    }
     details { margin-top: 20px; border-top: 1px solid var(--border); }
     summary { padding: 16px 0; color: var(--text-soft); font-size: 13px; font-weight: 600; cursor: pointer; }
     .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-bottom: 18px; }
@@ -129,8 +210,8 @@
       .settings-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
-      .header { gap: 12px; }
-      .header-actions { flex: 0 0 auto; }
+      .header { flex-wrap: wrap; gap: 12px; }
+      .header-actions { flex: 0 0 auto; margin-left: auto; }
       .brand-logo { width: 36px; height: 36px; flex-basis: 36px; }
       .brand-title { font-size: 16px; }
       .account-state { margin-left: 48px; }
@@ -138,6 +219,8 @@
       .section-head { align-items: flex-start; flex-direction: column; }
       .section-actions { width: 100%; }
       .section-actions .button { flex: 1; }
+      .section-head .section-actions { flex-wrap: wrap; }
+      .section-head .section-actions .button { white-space: nowrap; }
       .connection { grid-template-columns: 1fr; }
       .connection .endpoint:nth-of-type(2) { grid-column: auto; }
       .switch-wrap { justify-content: flex-end; }
@@ -149,6 +232,7 @@
   </style>
 </head>
 <body>
+<div id="toastRegion" class="toast-region" role="status" aria-live="polite" aria-relevant="additions text"></div>
 <div class="shell">
   <header class="header">
     <div class="identity">
@@ -207,7 +291,7 @@
     </section>
     <div class="section-head">
       <h2 data-i18n="connection">连接</h2>
-      <div class="section-actions"><button id="rescan" class="button secondary" type="button" data-i18n="rescan">重新扫描</button><button id="login" class="button" type="button" data-i18n="login">登录 Penguin Go</button></div>
+      <div class="section-actions"><button id="guideOpen" class="button secondary guide-trigger" type="button" aria-haspopup="dialog" aria-controls="remoteGuide" aria-label="使用教程" data-i18n-aria="guideTitle" title="使用教程" data-i18n-title="guideTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 3h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5v17h-5a4 4 0 0 0-4 1 4 4 0 0 0-4-1H3Z"/></svg><span data-i18n="guideTitle">使用教程</span></button><button id="rescan" class="button secondary" type="button" data-i18n="rescan">重新扫描</button><button id="login" class="button" type="button" data-i18n="login">登录 Penguin Go</button></div>
     </div>
     <section class="connection" aria-label="Harness 远程连接" data-i18n-aria="harnessConnection">
       <div class="endpoint"><div class="endpoint-title"><span id="harnessDot" class="state-dot"></span><span>Penguin Harness</span></div><div id="localUrl" class="endpoint-value" data-i18n="scanningLocal">正在扫描本机服务</div></div>
@@ -227,10 +311,36 @@
 </details>
   </main>
 </div>
+<dialog id="remoteGuide" class="guide" aria-labelledby="guideTitle">
+  <header class="guide-header"><h2 id="guideTitle" data-i18n="guideTitle">使用教程</h2><button id="guideClose" class="icon-button guide-close" type="button" aria-label="关闭教程" data-i18n-aria="guideClose"><span aria-hidden="true">×</span></button></header>
+  <div id="guideBody" class="guide-body">
+    <div id="guideSteps" class="guide-steps" role="tablist" aria-label="教程步骤" data-i18n-aria="guideSteps">
+      <button id="guideStep0" type="button" role="tab" aria-selected="true" aria-controls="guidePanel" tabindex="0"><span class="guide-step-number" aria-hidden="true">1</span><span data-i18n="guideStepHarness">启动 Harness</span></button>
+      <button id="guideStep1" type="button" role="tab" aria-selected="false" aria-controls="guidePanel" tabindex="-1"><span class="guide-step-number" aria-hidden="true">2</span><span data-i18n="guideStepConnect">开启远程访问</span></button>
+      <button id="guideStep2" type="button" role="tab" aria-selected="false" aria-controls="guidePanel" tabindex="-1"><span class="guide-step-number" aria-hidden="true">3</span><span data-i18n="guideStepAccess">使用公网地址</span></button>
+    </div>
+    <section id="guidePanel" class="guide-layout" role="tabpanel" aria-labelledby="guideStep0">
+      <div id="guideLaunch" class="guide-launch" hidden><img class="guide-harness-icon" src="/assets/guides/harness-logo.svg" alt="Penguin Harness" width="88" height="88"><h3>Penguin Harness</h3><div class="guide-launch-modes"><div class="guide-launch-mode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><strong data-i18n="guideDesktop">桌面端</strong></div><div class="guide-launch-mode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="m6 8 4 4-4 4m7 0h5"/></svg><strong data-i18n="guideCommandLine">命令行</strong><code>penguin web</code></div></div><a class="guide-quickstart" href="https://penguin.ooo/#quickstart" target="_blank" rel="noreferrer" data-i18n="guideQuickstart">查看安装与启动教程</a></div>
+      <figure id="guideFigure" class="guide-figure"><figcaption id="guideCaption"></figcaption><button id="guideImageButton" class="guide-image-button" type="button" aria-label="放大查看截图" data-i18n-aria="guideEnlarge"><span class="guide-screenshot-stage"><img id="guideImage" class="guide-image" width="920" height="560" alt=""><span id="guideCallouts" aria-hidden="true"></span></span></button><span id="guideImageHint" class="guide-image-hint" data-i18n="guideEnlarge">放大查看截图</span><p class="guide-image-note" data-i18n="guideImageNote">截图为示例，账号、订阅和公网地址以你的客户端为准。</p></figure>
+      <div id="guideInstructions" class="guide-instructions"><h3 id="guideViewTitle" aria-live="polite"></h3><p id="guideIntro" class="guide-intro"></p><ol id="guideItems" class="guide-items"></ol><p id="guideNote" class="guide-note"></p></div>
+    </section>
+  </div>
+  <footer class="guide-footer"><span id="guidePage" class="guide-page"></span><div class="guide-footer-actions"><button id="guidePrevious" class="button secondary" type="button" data-i18n="guidePrevious">上一步</button><button id="guideNext" class="button" type="button" data-i18n="guideNext">下一步</button></div></footer>
+</dialog>
 <script>
 const translations = {
   zh: {
-    cancelRetry:"重试上次连接清理",
+    guideDesktop:'桌面端', guideCommandLine:'命令行', guideQuickstart:'查看安装与启动教程', guideProgress:'第 {step} / {total} 步',
+    guideTitle:'使用教程', guideClose:'关闭教程', guideSteps:'教程步骤', guideStepHarness:'启动 Harness', guideStepConnect:'开启远程访问', guideStepAccess:'使用公网地址',
+    guideEnlarge:'放大查看截图', guideBack:'返回教程', guidePrevious:'上一步', guideNext:'下一步', guideDone:'我知道了', guideImageNote:'截图为示例，账号、订阅和公网地址以你的客户端为准。',
+    scanningToast:'正在扫描本机 Harness…', scanFoundToast:'扫描完成，发现 {count} 个本机 Harness', scanEmptyToast:'未发现本机 Harness，请先启动后重新扫描',
+    loginOpeningToast:'正在打开登录页面…', loginOpenedToast:'请在浏览器中完成 Penguin Go 登录', subscriptionLoadingToast:'正在刷新订阅信息…', subscriptionResultToast:'订阅状态：{status}',
+    remoteStartingToast:'正在开启远程访问…', remoteStoppingToast:'正在停止远程访问…', remoteConnectedToast:'远程访问已连接', remoteStoppedToast:'远程访问已停止',
+    cleanupLoadingToast:'正在断开上次连接，请稍候…',
+    scanFailedToast:'扫描失败：{message}', loginFailedToast:'无法打开登录页面：{message}', subscriptionFailedToast:'刷新订阅失败：{message}',
+    remoteStartFailedToast:'开启远程访问失败：{message}', remoteStopFailedToast:'停止远程访问失败：{message}', cleanupFailedToast:'断开上次连接失败：{message}',
+    languageFailedToast:'切换语言失败：{message}', themeFailedToast:'切换主题失败：{message}', retryActionToast:'请稍后重试。',
+    cancelRetry:"重试断开上次连接",
     cancel_pending:"正在处理上次连接，确认取消后才会开启新连接。您可以随时停止。",
     cancel_storage_failed:"无法保存连接取消记录，已阻止新连接。请检查配置目录是否可写。",
     cancel_not_supported:"服务器暂不支持精确取消，已阻止新连接。请联系管理员升级服务。",
@@ -294,7 +404,17 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     errorGeneric:'操作未能完成，请稍后重试；如持续出现，请重新登录。'
   },
   en: {
-    cancelRetry:"Retry previous connection cleanup",
+    guideDesktop:'Desktop app', guideCommandLine:'Command line', guideQuickstart:'Installation and startup guide', guideProgress:'Step {step} of {total}',
+    guideTitle:'Setup guide', guideClose:'Close guide', guideSteps:'Guide steps', guideStepHarness:'Start Harness', guideStepConnect:'Enable remote access', guideStepAccess:'Use public URL',
+    guideEnlarge:'Enlarge screenshot', guideBack:'Back to guide', guidePrevious:'Previous', guideNext:'Next', guideDone:'Got it', guideImageNote:'Example screenshots. Use the account, subscription and public URL shown in your own client.',
+    scanningToast:'Scanning for local Harness…', scanFoundToast:'Scan complete: {count} local Harness instance(s) found', scanEmptyToast:'No local Harness found. Start Harness and scan again.',
+    loginOpeningToast:'Opening sign-in page…', loginOpenedToast:'Complete Penguin Go sign-in in your browser', subscriptionLoadingToast:'Refreshing subscription…', subscriptionResultToast:'Subscription: {status}',
+    remoteStartingToast:'Starting remote access…', remoteStoppingToast:'Stopping remote access…', remoteConnectedToast:'Remote access connected', remoteStoppedToast:'Remote access stopped',
+    cleanupLoadingToast:'Disconnecting the previous connection. Please wait…',
+    scanFailedToast:'Scan failed: {message}', loginFailedToast:'Could not open sign-in page: {message}', subscriptionFailedToast:'Subscription refresh failed: {message}',
+    remoteStartFailedToast:'Could not start remote access: {message}', remoteStopFailedToast:'Could not stop remote access: {message}', cleanupFailedToast:'Could not disconnect the previous connection: {message}',
+    languageFailedToast:'Could not change language: {message}', themeFailedToast:'Could not change theme: {message}', retryActionToast:'Please try again later.',
+    cancelRetry:"Retry disconnecting the previous connection",
     cancel_pending:"Finishing the previous connection. New access waits for confirmed cancellation; you can stop at any time.",
     cancel_storage_failed:"Cannot save cancellation records. New access is blocked. Check configuration directory permissions.",
     cancel_not_supported:"The server does not support precise cancellation. New access is blocked. Ask an administrator to upgrade it.",
@@ -365,6 +485,209 @@ let themeMode = 'system';
 let themeInitialized = false;
 let currentStatus = null;
 let actionPending = false;
+let connectionFeedback = null;
+let toastSequence = 0;
+const toasts = new Map();
+const guideContent = {
+  zh: [
+    {title:'先启动本机 Harness', intro:'选择一种启动方式即可。', items:[['桌面端','打开已安装的 Penguin Harness。'],['命令行','安装后运行 {{command}}。']], note:'Harness 和 Remote 需要在同一台电脑上保持运行。'},
+    {title:'登录 Penguin Go', intro:'使用已开通 Remote 服务的账号登录。', items:[['点击 {{login}}','在浏览器中完成登录，再回到 Remote。'],['确认服务有效','账号下方会显示 Remote 服务的有效期。']], note:'登录后还要打开远程访问开关，才会开始连接。'},
+    {title:'打开远程访问开关', intro:'登录完成后，还需手动开启连接。', items:[['打开 {{switch}} 远程访问开关','点击截图红框中的开关。'],['等待 {{connected}}','出现公网地址后，即可远程访问。']], note:'服务未开通或已到期时，先开通或续约。'},
+    {title:'从其他设备访问', intro:'通过公网地址打开这台电脑上的 Harness。', items:[['点击 {{url}}','在浏览器中打开 Harness。'],['在其他设备使用','把完整地址复制到手机或其他电脑。'],['保持本机运行','使用期间保持 Harness 和 Remote 运行。']], note:'用完后关闭远程访问开关即可。'}
+  ],
+  en: [
+    {title:'Start local Harness', intro:'Choose either startup method.', items:[['Desktop app','Open the installed Penguin Harness app.'],['Command line','After installation, run {{command}}.']], note:'Keep Harness and Remote running on the same computer.'},
+    {title:'Sign in to Penguin Go', intro:'Use an account with an active Remote subscription.', items:[['Click {{login}}','Finish signing in in your browser, then return to Remote.'],['Check your subscription','The Remote expiry date appears below your account.']], note:'After signing in, turn on the remote access switch to connect.'},
+    {title:'Turn on remote access', intro:'After signing in, start the connection manually.', items:[['Turn on {{switch}} remote access','Click the switch outlined in the screenshot.'],['Wait for {{connected}}','Once the public URL appears, remote access is ready.']], note:'If your subscription is missing or expired, subscribe or renew first.'},
+    {title:'Access from another device', intro:'Open this computer’s Harness using its public URL.', items:[['Click {{url}}','Open Harness in your browser.'],['Use another device','Copy the full URL to your phone or another computer.'],['Keep this computer running','Keep both Harness and Remote running.']], note:'Turn off remote access when you are done.'}
+  ]
+};
+const guideViews = [
+  {step:0},
+  {step:1, image:'account-ready.png', marks:[[78.702,48.750,19.559,11.785]]},
+  {step:1, image:'remote-start.png', marks:[[82.935,63.393,13.261,9.642]]},
+  {step:2, image:'remote-connected.png', marks:[[42.040,66.160,22.125,8.214]]}
+];
+const guideDialog = document.getElementById('remoteGuide');
+let guideView = 0;
+let guideZoomed = false;
+let guideOpener = null;
+let guideOverflow = '';
+
+function guideText(text) {
+  const tokens = {
+    login: '<span class="guide-inline-button">' + escapeHtml(t('login')) + '</span>',
+    switch: '<span class="guide-inline-switch" aria-hidden="true"></span>',
+    connected: '<span class="guide-inline-connected">' + escapeHtml(t('runnerConnected')) + '</span>',
+    url: '<span class="guide-inline-url">' + escapeHtml(t('publicAddress')) + '</span>',
+    command: '<code class="guide-inline-command">penguin web</code>'
+  };
+  return escapeHtml(text).replace(/\{\{(login|switch|connected|url|command)\}\}/g, (_, key) => tokens[key]);
+}
+
+function renderGuide() {
+  if (!guideDialog.open) return;
+  const view = guideViews[guideView];
+  const content = guideContent[language][guideView];
+  for (let index = 0; index < 3; index++) {
+    const button = document.getElementById('guideStep' + index);
+    button.setAttribute('aria-selected', String(view.step === index));
+    button.tabIndex = view.step === index ? 0 : -1;
+  }
+  document.getElementById('guidePanel').setAttribute('aria-labelledby', 'guideStep' + view.step);
+  document.getElementById('guideLaunch').hidden = view.step !== 0;
+  document.getElementById('guideFigure').hidden = view.step === 0;
+  document.getElementById('guideCaption').textContent = content.title;
+  const image = document.getElementById('guideImage');
+  if (view.image) {
+    image.src = '/assets/guides/' + view.image;
+    image.alt = content.title;
+  }
+  document.getElementById('guideCallouts').innerHTML = (view.marks || []).map(([left, top, width, height]) => '<span class="guide-callout" style="left:' + left + '%;top:' + top + '%;width:' + width + '%;height:' + height + '%"></span>').join('');
+  document.getElementById('guideViewTitle').textContent = content.title;
+  document.getElementById('guideIntro').textContent = content.intro;
+  document.getElementById('guideItems').innerHTML = content.items.map(([title, body]) => '<li><div><strong>' + guideText(title) + '</strong><p>' + guideText(body) + '</p></div></li>').join('');
+  document.getElementById('guideNote').textContent = content.note;
+  document.getElementById('guidePage').textContent = t('guideProgress', {step:view.step + 1, total:3});
+  guideDialog.classList.toggle('is-zoomed', guideZoomed);
+  document.getElementById('guideSteps').hidden = guideZoomed;
+  document.getElementById('guideInstructions').hidden = guideZoomed;
+  document.getElementById('guideImageHint').textContent = t(guideZoomed ? 'guideBack' : 'guideEnlarge');
+  document.getElementById('guideImageButton').setAttribute('aria-label', t(guideZoomed ? 'guideBack' : 'guideEnlarge'));
+  document.getElementById('guidePrevious').hidden = guideZoomed || guideView === 0;
+  document.getElementById('guideNext').textContent = t(guideZoomed ? 'guideBack' : guideView === guideViews.length - 1 ? 'guideDone' : 'guideNext');
+}
+
+function selectGuideView(index) {
+  guideView = index;
+  document.getElementById('guideBody').scrollTop = 0;
+  renderGuide();
+}
+
+function zoomGuide(next) {
+  guideZoomed = next;
+  document.getElementById('guideBody').scrollTop = 0;
+  renderGuide();
+  document.getElementById(next ? 'guideNext' : 'guideImageButton').focus();
+}
+
+function closeGuide() {
+  guideDialog.close();
+  document.body.style.overflow = guideOverflow;
+  if (guideOpener && guideOpener.isConnected) guideOpener.focus();
+}
+
+document.getElementById('guideOpen').onclick = () => {
+  closeHeaderMenus();
+  guideOpener = document.activeElement;
+  guideOverflow = document.body.style.overflow;
+  guideView = 0;
+  guideZoomed = false;
+  guideDialog.showModal();
+  document.body.style.overflow = 'hidden';
+  renderGuide();
+  document.getElementById('guideClose').focus();
+};
+document.getElementById('guideClose').onclick = closeGuide;
+document.getElementById('guidePrevious').onclick = () => selectGuideView(Math.max(0, guideView - 1));
+document.getElementById('guideNext').onclick = () => {
+  if (guideZoomed) zoomGuide(false);
+  else if (guideView === guideViews.length - 1) closeGuide();
+  else selectGuideView(guideView + 1);
+};
+document.getElementById('guideImageButton').onclick = () => zoomGuide(!guideZoomed);
+for (let index = 0; index < 3; index++) {
+  const button = document.getElementById('guideStep' + index);
+  const select = next => {
+    selectGuideView(guideViews.findIndex(view => view.step === next));
+    document.getElementById('guideStep' + next).focus();
+  };
+  button.onclick = () => select(index);
+  button.onkeydown = event => {
+    const next = event.key === 'ArrowRight' ? (index + 1) % 3 : event.key === 'ArrowLeft' ? (index + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : null;
+    if (next === null) return;
+    event.preventDefault();
+    select(next);
+  };
+}
+guideDialog.oncancel = event => {
+  event.preventDefault();
+  if (guideZoomed) zoomGuide(false);
+  else closeGuide();
+};
+guideDialog.onkeydown = event => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (guideZoomed) zoomGuide(false);
+    else closeGuide();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const buttons = [...guideDialog.querySelectorAll('a[href], button:not([disabled]):not([tabindex="-1"])')].filter(button => button.offsetParent !== null);
+  const first = buttons[0], last = buttons[buttons.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+};
+function guideBackdrop(event) {
+  if (event.target !== guideDialog) return false;
+  const rect = guideDialog.getBoundingClientRect();
+  return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+}
+let guideBackdropPress = false;
+guideDialog.onpointerdown = event => { guideBackdropPress = guideBackdrop(event); };
+guideDialog.onclick = event => {
+  if (guideBackdropPress && guideBackdrop(event)) closeGuide();
+  guideBackdropPress = false;
+};
+
+function dismissToast(id) {
+  const toast = toasts.get(id);
+  if (!toast) return;
+  clearTimeout(toast.timer);
+  toast.element.remove();
+  toasts.delete(id);
+  if (connectionFeedback && connectionFeedback.id === id) connectionFeedback = null;
+}
+
+function notify(key, kind = 'success', values = {}, id = ++toastSequence) {
+  let toast = toasts.get(id);
+  if (!toast) {
+    const element = document.createElement('div');
+    element.className = 'toast';
+    element.innerHTML = '<span class="toast-dot" aria-hidden="true"></span><span class="toast-message"></span>';
+    toast = {element, message: element.querySelector('.toast-message')};
+    toasts.set(id, toast);
+    document.getElementById('toastRegion').append(element);
+    if (toasts.size > 3) dismissToast(toasts.keys().next().value);
+  }
+  clearTimeout(toast.timer);
+  Object.assign(toast, {key, values});
+  toast.element.dataset.kind = kind;
+  toast.message.textContent = t(key, values);
+  if (kind !== 'loading') toast.timer = setTimeout(() => dismissToast(id), kind === 'error' || kind === 'warning' ? 5000 : 3000);
+  return id;
+}
+
+function actionErrorDetail(raw) {
+  const message = friendlyError(raw);
+  return message === t('errorGeneric') ? t('retryActionToast') : message;
+}
+
+function showActionError(err, errorKey, id) {
+  showError(err);
+  notify(errorKey, 'error', {message: actionErrorDetail(err instanceof Error ? err.message : String(err))}, id);
+}
+
+async function buttonAction(buttonId, loadingKey, errorKey, action) {
+  const button = document.getElementById(buttonId);
+  if (button.disabled) return;
+  button.disabled = true;
+  const id = notify(loadingKey, 'loading');
+  try { await action(id); }
+  catch (err) { showActionError(err, errorKey, id); }
+  finally { button.disabled = false; }
+}
 
 function t(key, values = {}) {
   const template = translations[language][key] || translations.zh[key] || key;
@@ -381,7 +704,11 @@ function setLanguage(next) {
   document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-alt]').forEach(element => { element.alt = t(element.dataset.i18nAlt); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+  for (const toast of toasts.values()) {
+    toast.message.textContent = t(toast.key, toast.values);
+  }
   if (currentStatus) render(currentStatus);
+  renderGuide();
 }
 
 function setTheme(next) {
@@ -480,22 +807,26 @@ function legacyFriendlyError(raw) {
   return t('errorGeneric');
 }
 
-function friendlyError(value) {const key=String(value||'');return !key?'':translations[language][key]?t(key):legacyFriendlyError(value);}
+function friendlyError(value) {const key=String(value||'').trim();return !key?'':translations[language][key]?t(key):legacyFriendlyError(key);}
 async function refresh() {
   try {
     const status = await api('/api/status');
-    if (!languageInitialized) {
-      languageInitialized = true;
-      setLanguage(status.language);
-    }
-    if (!themeInitialized) {
-      themeInitialized = true;
-      setTheme(status.theme);
-    }
-    render(status);
+    applyStatus(status);
   } catch (err) {
     showError(err);
   }
+}
+
+function applyStatus(status) {
+  if (!languageInitialized) {
+    languageInitialized = true;
+    setLanguage(status.language);
+  }
+  if (!themeInitialized) {
+    themeInitialized = true;
+    setTheme(status.theme);
+  }
+  render(status);
 }
 
 function render(s) {
@@ -565,9 +896,20 @@ function render(s) {
   const retryWarning = String(s.lastError || '').startsWith('Remote slot lease renewal failed, retrying in ');
   const connectionNotice = running && !connected && (!s.lastError || retryWarning);
   const waitingForHarness = Boolean(s.desired) && s.lastError === 'harness_unavailable';
+  const waitingForCleanup = Boolean(s.cancelPending) && s.lastError === 'cancel_pending';
   error.textContent = recovering ? t('recoveringNotice') : connectionNotice ? t(s.connectionStatus === 'reconnecting' ? 'reconnectingNotice' : 'connectingNotice') : friendlyError(s.lastError);
   error.classList.toggle('visible', recovering || connectionNotice || Boolean(s.lastError));
-  error.classList.toggle('info', recovering || connectionNotice || waitingForHarness);
+  error.classList.toggle('info', recovering || connectionNotice || waitingForHarness || waitingForCleanup);
+  if (connectionFeedback !== null && !actionPending) {
+    const {id, desired} = connectionFeedback;
+    if (s.lastError && !waitingForCleanup) {
+      connectionFeedback = null;
+      notify(desired ? 'remoteStartFailedToast' : 'remoteStopFailedToast', 'error', {message: actionErrorDetail(s.lastError)}, id);
+    } else if ((desired && connected) || (!desired && !s.desired)) {
+      connectionFeedback = null;
+      notify(desired ? 'remoteConnectedToast' : 'remoteStoppedToast', 'success', {}, id);
+    }
+  }
 }
 
 function showError(err) {
@@ -585,31 +927,33 @@ function localSettings() {
   return {localUrl: document.getElementById('manualLocalUrl').value.trim(), dataRoot: document.getElementById('manualDataRoot').value.trim()};
 }
 
-document.getElementById('login').onclick = async () => {
-  try {
-    const data = await api('/api/login/start', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(localSettings())});
-    location.href = data.loginUrl;
-  } catch (err) { showError(err); }
-};
+document.getElementById('login').onclick = () => buttonAction('login', 'loginOpeningToast', 'loginFailedToast', async id => {
+  const data = await api('/api/login/start', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(localSettings())});
+  location.href = data.loginUrl;
+  notify('loginOpenedToast', 'info', {}, id);
+});
 
-document.getElementById('rescan').onclick = async () => {
-  const button = document.getElementById('rescan');
-  button.disabled = true;
-  try { await api('/api/harness/rescan', {method:'POST'}); await refresh(); }
-  catch (err) { showError(err); }
-  finally { button.disabled = false; }
-};
+document.getElementById('rescan').onclick = () => buttonAction('rescan', 'scanningToast', 'scanFailedToast', async id => {
+  const status = await api('/api/harness/rescan', {method:'POST'});
+  applyStatus(status);
+  notify(status.harnessFound ? 'scanFoundToast' : 'scanEmptyToast', status.harnessFound ? 'success' : 'warning', {count: (status.harnesses || []).length}, id);
+});
 
 document.getElementById('remoteToggle').onchange = async event => {
+  if (actionPending) return;
   const shouldRun = event.target.checked;
   actionPending = true;
   event.target.disabled = true;
+  if (connectionFeedback !== null) dismissToast(connectionFeedback.id);
+  const id = notify(shouldRun ? 'remoteStartingToast' : 'remoteStoppingToast', 'loading');
+  connectionFeedback = {id, desired: shouldRun};
   try {
     if (shouldRun) await api('/api/tunnel/start', {method:'POST', headers: {'content-type':'application/json'}, body: JSON.stringify(localSettings())});
     else await api('/api/tunnel/stop', {method:'POST'});
   } catch (err) {
     event.target.checked = !shouldRun;
-    showError(err);
+    connectionFeedback = null;
+    showActionError(err, shouldRun ? 'remoteStartFailedToast' : 'remoteStopFailedToast', id);
   } finally {
     actionPending = false;
     await refresh();
@@ -620,13 +964,13 @@ async function chooseLanguage(next) {
   try {
     await api('/api/preferences/language', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({language:next})});
     setLanguage(next);
-  } catch (err) { showError(err); }
+  } catch (err) { showActionError(err, 'languageFailedToast'); }
 }
 async function chooseTheme(next) {
   try {
     await api('/api/preferences/theme', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({theme:next})});
     setTheme(next);
-  } catch (err) { showError(err); }
+  } catch (err) { showActionError(err, 'themeFailedToast'); }
 }
 
 function closeHeaderMenus() {
@@ -665,9 +1009,25 @@ document.getElementById('themeLight').onclick = () => chooseTheme('light');
 document.getElementById('themeDark').onclick = () => chooseTheme('dark');
 setLanguage('zh');
 setTheme('system');
-async function refreshSubscription(){try{await api('/api/subscription/refresh',{method:'POST'});await refresh();}catch(err){showError(err);}}
-document.getElementById('refreshSubscription').onclick=refreshSubscription;
-document.getElementById('retryCancellation').onclick=async()=>{try{await api('/api/cancellation/retry',{method:'POST'});await refresh();}catch(err){showError(err);}};
+async function refreshSubscription(manual = false) {
+  const update = async id => {
+    const status = await api('/api/subscription/refresh', {method:'POST'});
+    applyStatus(status);
+    if (manual) {
+      const subscription = subscriptionState(status);
+      const label = status.loggedIn ? subscriptionLabel(subscription) : t('signInToCheckService');
+      notify('subscriptionResultToast', status.loggedIn && subscription.status === 'active' ? 'success' : 'warning', {status: label}, id);
+    }
+  };
+  if (manual) return buttonAction('refreshSubscription', 'subscriptionLoadingToast', 'subscriptionFailedToast', update);
+  try { await update(); } catch (err) { showError(err); }
+}
+document.getElementById('refreshSubscription').onclick=()=>refreshSubscription(true);
+document.getElementById('retryCancellation').onclick=()=>buttonAction('retryCancellation', 'cleanupLoadingToast', 'cleanupFailedToast', async id => {
+  await api('/api/cancellation/retry', {method:'POST'});
+  notify('cleanupLoadingToast', 'info', {}, id);
+  await refresh();
+});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSubscription();});
 window.addEventListener('online',()=>{void api('/api/wake',{method:'POST'}).catch(()=>{});});
 refreshSubscription();
