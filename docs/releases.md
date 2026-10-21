@@ -61,6 +61,12 @@ a manually maintained keychain. Environment names alone do not share secrets
 between repositories. Ensure environment policies permit `desktop-v*` tags and
 the branches used for manual signing runs.
 
+Signed macOS Intel jobs temporarily block outgoing UDP port 443 on their ephemeral
+runner so Apple's ticket service uses HTTPS over TCP. This follows the
+[runner maintainers' workaround](https://github.com/actions/runner-images/issues/14924)
+for HTTP/3 connection drops during stapling. Signing, notarization and stapling
+verification remain required. Remove the workaround when the runner issue is resolved.
+
 Windows verifies the downloaded EVSign CLI's signature before giving it a key.
 The native Go executable is signed once before packaging; electron-builder signs
 the desktop executable, elevation helper, NSIS uninstaller and installer. Each
