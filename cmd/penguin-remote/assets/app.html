@@ -59,11 +59,8 @@
     .header-menu { position: relative; display: inline-flex; min-height: 32px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
     .icon-button { display: inline-flex; width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; }
     .icon-button:hover, .icon-button[aria-expanded="true"] { background: var(--surface); color: var(--link); }
-    .icon-button svg, .option-segment svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .guide-trigger { width: auto; gap: 6px; padding: 0 7px; color: var(--button-text); font-size: 12px; font-weight: 600; white-space: nowrap; }
-    .header-menu:has(> .guide-trigger) { border-color: var(--primary); background: var(--primary); }
-    .header-menu:has(> .guide-trigger:hover) { border-color: var(--primary-hover); background: var(--primary-hover); }
-    .guide-trigger:hover { background: transparent; color: var(--button-text); }
+    .icon-button svg, .option-segment svg, .guide-trigger svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .guide-trigger { gap: 6px; white-space: nowrap; }
     .header-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--surface) 82%, var(--border-strong)); }
     .header-popover[hidden] { display: none; }
     .header-popover::before { position: absolute; top: -6px; right: 10px; width: 10px; height: 10px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: var(--surface); content: ""; transform: rotate(45deg); }
@@ -222,6 +219,8 @@
       .section-head { align-items: flex-start; flex-direction: column; }
       .section-actions { width: 100%; }
       .section-actions .button { flex: 1; }
+      .section-head .section-actions { flex-wrap: wrap; }
+      .section-head .section-actions .button { white-space: nowrap; }
       .connection { grid-template-columns: 1fr; }
       .connection .endpoint:nth-of-type(2) { grid-column: auto; }
       .switch-wrap { justify-content: flex-end; }
@@ -247,9 +246,6 @@
     </div>
     <div class="header-actions">
       <div class="header-tools">
-        <div class="header-menu">
-          <button id="guideOpen" class="icon-button guide-trigger" type="button" aria-haspopup="dialog" aria-controls="remoteGuide" aria-label="使用教程" data-i18n-aria="guideTitle" title="使用教程" data-i18n-title="guideTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 3h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5v17h-5a4 4 0 0 0-4 1 4 4 0 0 0-4-1H3Z"/></svg><span data-i18n="guideTitle">使用教程</span></button>
-        </div>
         <div class="header-menu" id="supportMenu">
           <button class="icon-button" id="supportButton" type="button" aria-controls="supportPanel" aria-expanded="false" aria-haspopup="dialog" aria-label="客服微信群" data-i18n-aria="supportGroup" title="客服微信群" data-i18n-title="supportGroup">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
@@ -295,7 +291,7 @@
     </section>
     <div class="section-head">
       <h2 data-i18n="connection">连接</h2>
-      <div class="section-actions"><button id="rescan" class="button secondary" type="button" data-i18n="rescan">重新扫描</button><button id="login" class="button" type="button" data-i18n="login">登录 Penguin Go</button></div>
+      <div class="section-actions"><button id="guideOpen" class="button secondary guide-trigger" type="button" aria-haspopup="dialog" aria-controls="remoteGuide" aria-label="使用教程" data-i18n-aria="guideTitle" title="使用教程" data-i18n-title="guideTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 3h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5v17h-5a4 4 0 0 0-4 1 4 4 0 0 0-4-1H3Z"/></svg><span data-i18n="guideTitle">使用教程</span></button><button id="rescan" class="button secondary" type="button" data-i18n="rescan">重新扫描</button><button id="login" class="button" type="button" data-i18n="login">登录 Penguin Go</button></div>
     </div>
     <section class="connection" aria-label="Harness 远程连接" data-i18n-aria="harnessConnection">
       <div class="endpoint"><div class="endpoint-title"><span id="harnessDot" class="state-dot"></span><span>Penguin Harness</span></div><div id="localUrl" class="endpoint-value" data-i18n="scanningLocal">正在扫描本机服务</div></div>
