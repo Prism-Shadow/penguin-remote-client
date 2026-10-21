@@ -150,9 +150,11 @@ function openExternal(target: string): void {
 
 function createWindow(origin: string): void {
  powerMonitor.on("resume",()=>{void fetch(origin+"/api/wake",{method:"POST"}).catch(()=>{});});
+  // Small ICO frames improve the Windows title bar; larger frames retain H.
+  const iconName = process.platform === "win32" ? "window-icon.ico" : "icon.png";
   const iconPath = app.isPackaged
-    ? path.join(process.resourcesPath, "icon.png")
-    : path.join(app.getAppPath(), "build", "icon.png");
+    ? path.join(process.resourcesPath, iconName)
+    : path.join(app.getAppPath(), "build", iconName);
   mainWindow = new BrowserWindow({
     width: 920,
     height: 680,
