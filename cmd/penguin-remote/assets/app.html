@@ -60,7 +60,9 @@
     .icon-button { display: inline-flex; width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; }
     .icon-button:hover, .icon-button[aria-expanded="true"] { background: var(--surface); color: var(--link); }
     .icon-button svg, .option-segment svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .guide-trigger { width: auto; gap: 6px; padding: 0 7px; font-size: 12px; white-space: nowrap; }
+    .guide-trigger { width: auto; gap: 6px; padding: 0 7px; color: var(--link); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .header-menu:has(> .guide-trigger) { border-color: color-mix(in srgb, var(--link) 32%, var(--border)); background: color-mix(in srgb, var(--link) 8%, var(--surface)); }
+    .guide-trigger:hover { background: color-mix(in srgb, var(--link) 7%, var(--surface)); color: var(--link); }
     .header-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--surface) 82%, var(--border-strong)); }
     .header-popover[hidden] { display: none; }
     .header-popover::before { position: absolute; top: -6px; right: 10px; width: 10px; height: 10px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: var(--surface); content: ""; transform: rotate(45deg); }
@@ -226,6 +228,14 @@
     :root[data-theme="dark"] { color-scheme: dark; --bg: #000000; --surface: #0d0d0d; --surface-subtle: #171717; --border: #262626; --border-strong: #404040; --text: #f3f4f6; --text-soft: #d1d5db; --text-muted: #9ca3af; --primary: #f3f4f6; --primary-hover: #ffffff; --link: #8ab4f8; --focus: #6b7280; --button-text: #111827; --notice-border: #7f1d1d; --notice-bg: #450a0a; }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme]) { color-scheme: dark; --bg: #000000; --surface: #0d0d0d; --surface-subtle: #171717; --border: #262626; --border-strong: #404040; --text: #f3f4f6; --text-soft: #d1d5db; --text-muted: #9ca3af; --primary: #f3f4f6; --primary-hover: #ffffff; --link: #8ab4f8; --focus: #6b7280; --button-text: #111827; --notice-border: #7f1d1d; --notice-bg: #450a0a; }
+    }
+    :root[data-theme="dark"] .header-menu:has(> .guide-trigger) { border-color: color-mix(in srgb, var(--text) 32%, var(--border)); background: color-mix(in srgb, var(--text) 12%, var(--surface)); }
+    :root[data-theme="dark"] .guide-trigger, :root[data-theme="dark"] .guide-trigger:hover { color: var(--text); }
+    :root[data-theme="dark"] .guide-trigger:hover { background: color-mix(in srgb, var(--text) 8%, var(--surface)); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) .header-menu:has(> .guide-trigger) { border-color: color-mix(in srgb, var(--text) 32%, var(--border)); background: color-mix(in srgb, var(--text) 12%, var(--surface)); }
+      :root:not([data-theme]) .guide-trigger, :root:not([data-theme]) .guide-trigger:hover { color: var(--text); }
+      :root:not([data-theme]) .guide-trigger:hover { background: color-mix(in srgb, var(--text) 8%, var(--surface)); }
     }
   </style>
 </head>
