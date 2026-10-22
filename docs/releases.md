@@ -61,11 +61,16 @@ a manually maintained keychain. Environment names alone do not share secrets
 between repositories. Ensure environment policies permit `desktop-v*` tags and
 the branches used for manual signing runs.
 
-Signed macOS Intel jobs temporarily block outgoing UDP port 443 on their ephemeral
-runner so Apple's ticket service uses HTTPS over TCP. This follows the
+Signed macOS jobs on both architectures temporarily block outgoing UDP port 443
+on their ephemeral runner so Apple's ticket service uses HTTPS over TCP. This follows the
 [runner maintainers' workaround](https://github.com/actions/runner-images/issues/14924)
 for HTTP/3 connection drops during stapling. Signing, notarization and stapling
 verification remain required. Remove the workaround when the runner issue is resolved.
+The same jobs install a temporary `xcrun` wrapper before packaging, covering both
+electron-builder's application stapling and the final application/DMG validation.
+Only ticket transport failures and timeouts retry, up to four attempts with 5, 15
+and 30 second delays. Other `xcrun` commands pass directly to the system executable;
+signature failures, rejected notarization and exhausted retries still block release.
 
 Windows verifies the downloaded EVSign CLI's signature before giving it a key.
 The native Go executable is signed once before packaging; electron-builder signs
