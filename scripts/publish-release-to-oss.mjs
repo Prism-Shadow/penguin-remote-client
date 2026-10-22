@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { githubClient, ossClient, ossConfig, sameBytes } from "./oss-release-tools.mjs";
 import { verifyReleaseMirror } from "./verify-release-mirror.mjs";
 import { releaseTarget } from "./release-target.mjs";
+import { releaseProbes, downloadManifestName } from "./generate-release-download-manifest.mjs";
 
 export function mirrorRelease({ directory, tag, github, oss, config, log = console.log }) {
   // Refresh GitHub metadata after download and before the first OSS mutation.
@@ -21,7 +22,15 @@ export function mirrorRelease({ directory, tag, github, oss, config, log = conso
       continue;
     }
     let uploadError;
-    try { oss.put(key, bytes, { immutable: true, cache: "public,max-age=31536000,immutable" }); }
+    const probe = releaseProbes.some(probe => probe.file === name);
+    const options = { immutable: true, cache: "public,max-age=31536000,immutable" };
+    if (probe) {
+      options.cache += ",no-transform";
+      options.contentType = "application/octet-stream";
+    } else if (name === downloadManifestName) {
+      options.contentType = "text/tab-separated-values; charset=utf-8";
+    }
+    try { oss.put(key, bytes, options); }
     catch (error) { uploadError = error; }
     // A create race or an ambiguous upload failure is successful only if the final bytes match.
     try { sameBytes(oss.get(key), bytes, key); }

@@ -8,6 +8,7 @@ import { verifyUploadedRelease } from "../../scripts/verify-uploaded-release.mjs
 import { resourcesDirectory } from "../scripts/verify-package.mjs";
 import { productionGoUrl, releaseTarget, stagingGoUrl } from "../../scripts/release-target.mjs";
 import { updateTargets, stageUpdateMetadata, mergeUpdateMetadata } from "../../scripts/update-metadata.mjs";
+import { downloadResourceFiles, generateReleaseDownloadManifest } from "../../scripts/generate-release-download-manifest.mjs";
 
 function writeUpdateFeeds(dir, version) {
   for (const target of updateTargets) {
@@ -15,6 +16,7 @@ function writeUpdateFeeds(dir, version) {
     stageUpdateMetadata(dir, target.platform, target.arch, version);
   }
   mergeUpdateMetadata(dir, version);
+  generateReleaseDownloadManifest(dir, "desktop-v" + version);
 }
 
 function writeSigningReports(dir, commit = "a".repeat(40), penguinGoUrl = productionGoUrl) {
@@ -84,12 +86,18 @@ describe("desktop release gates", () => {
       writeSigningReports(dir);
       expect(() => prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toThrow();
       writeUpdateFeeds(dir, "0.1.0");
-      expect(prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toHaveLength(13);
+      expect(prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toHaveLength(16);
       const manifest = JSON.parse(fs.readFileSync(path.join(dir,"release-manifest.json"),"utf8"));
       expect(manifest.penguinGoUrl).toBe("https://go.penguin.ooo");
       expect(manifest.trustedCodeSigning).toBe(true);
       expect(manifest.notarized).toBe(true);
-      expect(fs.readFileSync(path.join(dir,"SHA256SUMS.txt"),"utf8").trim().split("\n")).toHaveLength(13);
+      const sums = fs.readFileSync(path.join(dir,"SHA256SUMS.txt"),"utf8");
+      expect(sums.trim().split("\n")).toHaveLength(16);
+      for (const name of downloadResourceFiles) {
+        const hash = crypto.createHash("sha256").update(fs.readFileSync(path.join(dir, name))).digest("hex");
+        expect(manifest.assets).toContainEqual({ name, size: fs.statSync(path.join(dir, name)).size, sha256: hash });
+        expect(sums).toContain(`${hash}  ${name}\n`);
+      }
       const release = {
         draft: true,
         prerelease: true,
@@ -143,6 +151,70 @@ describe("desktop release gates", () => {
       expect(() => verifySigningReports(dir, "a".repeat(40))).toThrow(/integrity mismatch/);
     } finally {
       if (!path.resolve(dir).startsWith(path.resolve(os.tmpdir()) + path.sep + "remote-signing-test-")) throw new Error("Unsafe test cleanup path");
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it.each(["missing-small", "missing-large", "missing-tsv", "size", "content", "manifest"])("rejects invalid probes before preparation and draft publication: %s", mode => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "remote-probe-release-test-"));
+    try {
+      for (const name of requiredAssets) fs.writeFileSync(path.join(dir, name), "final-signed-artifact");
+      writeSigningReports(dir);
+      writeUpdateFeeds(dir, "0.1.7");
+      prepareRelease(dir, "desktop-v0.1.7", "a".repeat(40), "0.1.7");
+      // Remove preparation output so both gates inspect the same malformed input set.
+      const manifestBytes = fs.readFileSync(path.join(dir, "release-manifest.json"));
+      const sumBytes = fs.readFileSync(path.join(dir, "SHA256SUMS.txt"));
+      fs.unlinkSync(path.join(dir, "release-manifest.json"));
+      fs.unlinkSync(path.join(dir, "SHA256SUMS.txt"));
+      const missing = { "missing-small": downloadResourceFiles[0], "missing-large": downloadResourceFiles[1], "missing-tsv": downloadResourceFiles[2] }[mode];
+      if (missing) fs.unlinkSync(path.join(dir, missing));
+      if (mode === "size") fs.truncateSync(path.join(dir, "probe-64k.bin"), 65535);
+      if (mode === "content") {
+        const file = path.join(dir, "probe-1m.bin"), bytes = fs.readFileSync(file);
+        bytes[0] ^= 1;
+        fs.writeFileSync(file, bytes);
+      }
+      if (mode === "manifest") {
+        const file = path.join(dir, "release-download-manifest.tsv");
+        fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("desktop-v0.1.7", "desktop-v9.0.0"));
+      }
+      expect(() => prepareRelease(dir, "desktop-v0.1.7", "a".repeat(40), "0.1.7")).toThrow();
+      fs.writeFileSync(path.join(dir, "release-manifest.json"), manifestBytes);
+      fs.writeFileSync(path.join(dir, "SHA256SUMS.txt"), sumBytes);
+      const release = { draft: true, prerelease: true, tag_name: "desktop-v0.1.7", target_commitish: "a".repeat(40),
+        assets: fs.readdirSync(dir).map(name => {
+          const bytes = fs.readFileSync(path.join(dir, name));
+          return { name, size: bytes.length, digest: "sha256:" + crypto.createHash("sha256").update(bytes).digest("hex") };
+        }) };
+      expect(() => verifyUploadedRelease(dir, release)).toThrow();
+    } finally {
+      if (!path.resolve(dir).startsWith(path.join(os.tmpdir(), "remote-probe-release-test-"))) throw new Error("Unsafe test cleanup path");
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it.each(downloadResourceFiles)("requires %s in both publication manifests even when GitHub digests match", name => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "remote-probe-records-test-"));
+    try {
+      for (const file of requiredAssets) fs.writeFileSync(path.join(dir, file), "final-signed-artifact");
+      writeSigningReports(dir);
+      writeUpdateFeeds(dir, "0.1.7");
+      prepareRelease(dir, "desktop-v0.1.7", "a".repeat(40), "0.1.7");
+      const jsonFile = path.join(dir, "release-manifest.json"), sumFile = path.join(dir, "SHA256SUMS.txt");
+      const originalManifest = fs.readFileSync(jsonFile, "utf8"), originalSums = fs.readFileSync(sumFile, "utf8");
+      for (const mode of ["json", "sums"]) {
+        const manifest = JSON.parse(originalManifest);
+        if (mode === "json") manifest.assets = manifest.assets.filter(asset => asset.name !== name);
+        fs.writeFileSync(jsonFile, JSON.stringify(manifest));
+        fs.writeFileSync(sumFile, mode === "sums" ? originalSums.split("\n").filter(line => !line.endsWith("  " + name)).join("\n") : originalSums);
+        const release = { draft: true, prerelease: true, tag_name: manifest.tag, target_commitish: manifest.sourceCommit,
+          assets: fs.readdirSync(dir).map(file => {
+            const bytes = fs.readFileSync(path.join(dir, file));
+            return { name: file, size: bytes.length, digest: "sha256:" + crypto.createHash("sha256").update(bytes).digest("hex") };
+          }) };
+        expect(() => verifyUploadedRelease(dir, release)).toThrow(/Download resource manifest\/checksum mismatch/);
+      }
+    } finally {
+      if (!path.resolve(dir).startsWith(path.join(os.tmpdir(), "remote-probe-records-test-"))) throw new Error("Unsafe test cleanup path");
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });

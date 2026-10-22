@@ -201,6 +201,10 @@ jobs:
           path: release-assets
       - name: Merge update feeds for all architectures
         run: node scripts/update-metadata.mjs merge release-assets
+      - name: Generate release download probes and manifest
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/generate-release-download-manifest.mjs "$RELEASE_TAG" release-assets
       - name: Prepare complete release
         env:
           RELEASE_TAG: ${{ github.ref_name }}

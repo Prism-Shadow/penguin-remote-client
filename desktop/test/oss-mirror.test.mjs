@@ -11,6 +11,7 @@ import { downloadReleaseMirror } from "../../scripts/download-release-mirror.mjs
 import { mirrorRelease } from "../../scripts/publish-release-to-oss.mjs";
 import { ossClient, ossConfig, githubClient } from "../../scripts/oss-release-tools.mjs";
 import { testOssStaging } from "../../scripts/test-oss-staging.mjs";
+import { downloadResourceFiles, generateReleaseDownloadManifest } from "../../scripts/generate-release-download-manifest.mjs";
 
 const directories = [];
 const config = { publicBase: "https://client-releases.example.test", bucket: "client-releases", region: "cn-beijing", endpoint: "oss-cn-beijing.aliyuncs.com" };
@@ -41,8 +42,9 @@ const historicalSources = {
   "0.1.3": "de6b84e0a0d87bbf5a2c7dafcfd2013dbdccce79",
   "0.1.4": "8897e13300f87effc00c9fab4e837a33313fce79",
   "0.1.5": "98edd11798b054f3cde5f131a25149289cd538d6",
+  "0.1.6": "147d71a22aea87e2b1abb0807e48c73c4d4f4f45",
 };
-function fixture({ version = "0.1.6", historical = Object.hasOwn(historicalSources, version),
+function fixture({ version = "0.1.7", historical = Object.hasOwn(historicalSources, version),
   unsigned = ["0.1.0", "0.1.1", "0.1.2"].includes(version), legacyLinux = version === "0.1.0",
   sourceCommit = historicalSources[version] ?? commit } = {}) {
   const dir = directory(), target = releaseTarget(version), tag = "desktop-v" + version;
@@ -54,12 +56,15 @@ function fixture({ version = "0.1.6", historical = Object.hasOwn(historicalSourc
       trustedCodeSigning: true, penguinGoUrl: target.penguinGoUrl,
       assets: signing.assets.map(name => ({ name, sha256: sha256(fs.readFileSync(path.join(dir, name))) })) }));
   }
-  if (!historical) {
+  if (!historical || (version === "0.1.6" && !legacyLinux)) {
     for (const update of updateTargets) {
       fs.writeFileSync(path.join(dir, update.feed), JSON.stringify({ version, files: [{ url: update.asset }] }));
       stageUpdateMetadata(dir, update.platform, update.arch, version);
     }
     mergeUpdateMetadata(dir, version);
+  }
+  if (!historical) {
+    generateReleaseDownloadManifest(dir, tag);
     prepareRelease(dir, tag, sourceCommit, version);
   } else {
     const assets = assetMetadata(dir).map(asset => ({ name: asset.name, size: asset.size, sha256: asset.digest.slice(7) }));
@@ -109,10 +114,11 @@ describe("published Client asset verification", () => {
     expect(result.files).toContain("release-manifest.json");
     expect(result.files).toContain("SHA256SUMS.txt");
   });
-  it.each(Object.keys(historicalSources))("preserves the audited historical contract for %s without requiring today's package version or feeds", version => {
+  it.each(Object.keys(historicalSources))("preserves the audited historical contract for %s without adding probes", version => {
     const f = fixture({ version });
     expect(verifyReleaseMirror(f.dir, f.release, f.tag).manifest.version).toBe(version);
-    expect(fs.existsSync(path.join(f.dir, "latest.yml"))).toBe(false);
+    expect(fs.existsSync(path.join(f.dir, "latest.yml"))).toBe(version === "0.1.6");
+    for (const name of downloadResourceFiles) expect(fs.existsSync(path.join(f.dir, name))).toBe(false);
   });
   it.each(Object.keys(historicalSources))("rejects a changed source for historical tag %s even when all source fields and digests agree", version => {
     const f = fixture({ version, sourceCommit: "b".repeat(40) });
@@ -236,10 +242,18 @@ describe("immutable OSS mirrors and latest pointer", () => {
     const calls = oss.put.mock.calls.filter(([key]) => key !== "latest.json");
     expect(calls).toHaveLength(f.release.assets.length);
     for (const [key, bytes, options] of calls) {
-      expect(bytes).toEqual(fs.readFileSync(path.join(f.dir, key.split("/").at(-1))));
-      expect(options).toEqual({ immutable: true, cache: "public,max-age=31536000,immutable" });
+      expect(bytes.equals(fs.readFileSync(path.join(f.dir, key.split("/").at(-1))))).toBe(true);
+      expect(options.immutable).toBe(true);
+      expect(options.cache).toContain("public,max-age=31536000,immutable");
+      if (key.endsWith(".bin")) {
+        expect(options.cache).toContain("no-transform");
+        expect(options.contentType).toBe("application/octet-stream");
+      }
     }
-    expect(JSON.parse(oss.objects.get("latest.json"))).toEqual({ schemaVersion: 1, tag: f.tag, version: "0.1.6", releaseBaseUrl: `${config.publicBase}/releases/${f.tag}` });
+    expect(JSON.parse(oss.objects.get("latest.json"))).toEqual({ schemaVersion: 1, tag: f.tag, version: "0.1.7", releaseBaseUrl: `${config.publicBase}/releases/${f.tag}` });
+    for (const name of downloadResourceFiles) {
+      expect(oss.objects.get(`releases/${f.tag}/${name}`).equals(fs.readFileSync(path.join(f.dir, name)))).toBe(true);
+    }
     expect(oss.put.mock.calls.at(-1)[2]).toEqual({ cache: "no-cache" });
     mirrorRelease({ ...f, oss });
     expect(oss.put.mock.calls.filter(([key]) => key !== "latest.json")).toHaveLength(calls.length);
@@ -296,7 +310,7 @@ describe("immutable OSS mirrors and latest pointer", () => {
   });
   it("rechecks GitHub Latest after uploads, preventing an older mirror from rolling back the pointer", () => {
     const f = fixture(), oss = fakeOss();
-    f.github.latest.mockReturnValueOnce(f.release).mockReturnValue({ ...f.release, tag_name: "desktop-v0.1.7", id: 124 });
+    f.github.latest.mockReturnValueOnce(f.release).mockReturnValue({ ...f.release, tag_name: "desktop-v0.1.8", id: 124 });
     expect(mirrorRelease({ ...f, oss }).updatedLatest).toBe(false);
     expect(f.github.latest).toHaveBeenCalledTimes(2);
     expect(oss.objects.has("latest.json")).toBe(false);
@@ -313,6 +327,38 @@ describe("immutable OSS mirrors and latest pointer", () => {
     const f = fixture(), oss = fakeOss(), original = oss.put.getMockImplementation();
     oss.put.mockImplementation((key, bytes, options) => original(key, key === "latest.json" ? Buffer.from("wrong pointer") : bytes, options));
     expect(() => mirrorRelease({ ...f, oss })).toThrow(/content mismatch: latest.json/);
+  });
+  it.each([...downloadResourceFiles, "all"])("requires the complete new probe contract before any OSS mutation: %s", name => {
+    const f = fixture(), oss = fakeOss();
+    removeContractAssets(f, name === "all" ? downloadResourceFiles : [name]);
+    expect(() => mirrorRelease({ ...f, oss })).toThrow(/Missing required Client release asset/);
+    expect(oss.get).not.toHaveBeenCalled();
+    expect(oss.put).not.toHaveBeenCalled();
+  });
+  it.each(["size", "content", "tsv-tag", "tsv-hash"])("rejects probes even when GitHub and JSON/checksum metadata agree: %s", mode => {
+    const f = fixture(), oss = fakeOss(), file = path.join(f.dir, mode.startsWith("tsv") ? "release-download-manifest.tsv" : "probe-64k.bin");
+    if (mode === "size") fs.truncateSync(file, 65535);
+    if (mode === "content") {
+      const bytes = fs.readFileSync(file); bytes[0] ^= 1; fs.writeFileSync(file, bytes);
+    }
+    if (mode === "tsv-tag") fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(f.tag, "desktop-v9.0.0"));
+    if (mode === "tsv-hash") fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(/[a-f0-9]{64}/, "0".repeat(64)));
+    editManifest(f, manifest => {
+      for (const asset of manifest.assets) {
+        const bytes = fs.readFileSync(path.join(f.dir, asset.name));
+        asset.size = bytes.length; asset.sha256 = sha256(bytes);
+      }
+      fs.writeFileSync(path.join(f.dir, "SHA256SUMS.txt"), manifest.assets.map(asset => `${asset.sha256}  ${asset.name}`).join("\n") + "\n");
+    });
+    expect(() => mirrorRelease({ ...f, oss })).toThrow(/download (probe|manifest)/);
+    expect(oss.put).not.toHaveBeenCalled();
+  });
+  it.each(downloadResourceFiles)("does not update Latest if %s fails readback after a partial mirror", name => {
+    const f = fixture(), oss = fakeOss(), put = oss.put.getMockImplementation();
+    oss.put.mockImplementation((key, bytes, options) => put(key, key.endsWith("/" + name) ? Buffer.from("corrupt") : bytes, options));
+    expect(() => mirrorRelease({ ...f, oss })).toThrow(/content mismatch/);
+    expect(oss.put.mock.calls.some(([key]) => key === "latest.json")).toBe(false);
+    expect(oss.objects.has("latest.json")).toBe(false);
   });
 });
 
@@ -338,6 +384,12 @@ describe("exact-key ossutil and GitHub adapters", () => {
     expect(calls[0].args).toContain("--forbid-overwrite");
     expect(calls[0].args).toContain("--cache-control");
     expect(calls[1].args[1]).toBe("oss://client-releases/releases/desktop-v0.1.6/a.zip");
+    oss.put("releases/desktop-v0.1.7/probe-64k.bin", Buffer.from("content"), {
+      immutable: true, cache: "public,max-age=31536000,immutable,no-transform", contentType: "application/octet-stream",
+    });
+    expect(calls[2].args).toContain("--content-type");
+    expect(calls[2].args).toContain("application/octet-stream");
+    expect(calls[2].args).not.toContain("--content-encoding");
     expect(fs.readdirSync(scratch)).toEqual([]);
   });
   it("only treats NoSuchKey as absent; access-denied and network errors fail closed", () => {
@@ -424,6 +476,12 @@ describe("workflow publishing boundaries", () => {
     expect(build.jobs.release.steps.at(-1).run).toContain("node scripts/verify-uploaded-release.mjs");
     expect(build.jobs.release.steps.at(-1).run).toContain("gh release edit");
     expect(build.jobs.package.env.PENGUIN_REMOTE_GO_URL).toContain("needs.check.outputs.penguin_go_url");
+    const steps = build.jobs.release.steps;
+    const generation = steps.findIndex(step => step.name === "Generate release download probes and manifest");
+    expect(generation).toBeGreaterThan(steps.findIndex(step => step.name === "Merge update feeds for all architectures"));
+    expect(generation).toBeLessThan(steps.findIndex(step => step.name === "Prepare complete release"));
+    expect(steps[generation].run).toContain('generate-release-download-manifest.mjs "$RELEASE_TAG" release-assets');
+    expect(steps.at(-1).run).toContain('gh release upload "$RELEASE_TAG" release-assets/*');
   });
   it("serializes every mirror entry, scopes OIDC and pins authentication and ossutil", () => {
     const mirror = workflow("oss-mirror"), staging = workflow("oss-staging");

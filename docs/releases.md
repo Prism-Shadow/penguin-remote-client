@@ -26,7 +26,7 @@ never relabel a staging binary as a production build.
    require Developer ID signing, App notarization and stapling, and DMG notarization
    and stapling. Missing credentials or failed verification stop the release.
 6. Only a complete matrix prepares a draft prerelease, uploads all seven required
-   installer/archive assets plus signing verification reports, checksums and source
+   installer/archive assets plus signing verification reports, download probes, checksums and source
    manifest, then verifies the uploaded files before publication. Stable versions
    become full releases marked Latest; versions with a prerelease suffix remain
    prereleases and do not become Latest. Reports bind verified artifacts to their final
@@ -105,7 +105,7 @@ private with a narrowly scoped public-read policy. Do not expose `staging/*` pub
 
 Every asset goes under `releases/<complete desktop-v... tag>/`, including installers,
 archives, signing reports, `SHA256SUMS.txt`, `release-manifest.json`, published
-`latest*.yml` feeds and blockmaps. Before any OSS write, the downloaded file set, sizes
+`latest*.yml` feeds, blockmaps and the three download-source resources described below. Before any OSS write, the downloaded file set, sizes
 and SHA-256 digests must agree with GitHub's asset metadata. Both metadata files
 themselves are checked against GitHub too. The manifest must agree with the requested
 tag/version and GitHub's full `target_commitish` source SHA. Its complete asset list
@@ -115,11 +115,12 @@ and update feeds are determined by the trusted tag/source contract, then verifie
 Historical exceptions are an explicit allowlist pinned to the source commits of the
 audited tags, rather than inferred from manifest flags or missing files:
 
-| Tags | Required signing | Required update feeds |
-| --- | --- | --- |
-| `desktop-v0.1.0`, `desktop-v0.1.1`, `desktop-v0.1.2` | Unsigned historical contract | None |
-| `desktop-v0.1.3-staging.1`, `desktop-v0.1.3`, `desktop-v0.1.4`, `desktop-v0.1.5` | Signed and notarized reports | None |
-| All other tags, including `desktop-v0.1.6` and later versions | Signed and notarized reports | All three feeds |
+| Tags | Required signing | Required update feeds | Required probes and TSV |
+| --- | --- | --- | --- |
+| `desktop-v0.1.0`, `desktop-v0.1.1`, `desktop-v0.1.2` | Unsigned historical contract | None | None |
+| `desktop-v0.1.3-staging.1`, `desktop-v0.1.3`, `desktop-v0.1.4`, `desktop-v0.1.5` | Signed and notarized reports | None | None |
+| `desktop-v0.1.6` | Signed and notarized reports | All three feeds | None |
+| All other tags from the updated release pipeline | Signed and notarized reports | All three feeds | All three files |
 
 Only `desktop-v0.1.0` accepts the original `linux-x64` installer names. Historical
 tag/source mismatches fail; new prerelease names do not inherit older exceptions.
@@ -157,6 +158,67 @@ The pointer uses `Cache-Control: no-cache` and is read back and verified too:
   "releaseBaseUrl": "https://penguin-remote-client-releases.oss-cn-beijing.aliyuncs.com/releases/desktop-v0.1.6"
 }
 ```
+
+### Download-Source Probe Resources
+
+The release job runs `scripts/generate-release-download-manifest.mjs <tag> <output-dir>`
+after merging final update feeds and before preparing checksums and the JSON manifest.
+It generates these three files in the same release directory as the installers:
+
+| File | Size or format |
+| --- | --- |
+| `probe-64k.bin` | Exactly 65536 bytes |
+| `probe-1m.bin` | Exactly 1048576 bytes |
+| `release-download-manifest.tsv` | UTF-8 without BOM, real tabs, final LF |
+
+Probe bytes use PenguinHarness's deterministic SHA-256 block algorithm and the same
+`penguin-harness release probe v1` seed (followed by NUL, decimal size, NUL and decimal
+block counter). They are pseudorandom rather than zero-filled or copied from an installer.
+The TSV contains exactly the following three rows; separators shown as `<TAB>` here
+are real tab characters in the generated file, and hashes are computed from the files:
+
+```text
+penguin-release-download-manifest<TAB>1<TAB><full desktop-v tag>
+probe<TAB>small<TAB>probe-64k.bin<TAB>65536<TAB><actual lowercase SHA-256>
+probe<TAB>large<TAB>probe-1m.bin<TAB>1048576<TAB><actual lowercase SHA-256>
+```
+
+Preparation and draft-upload verification reject missing, malformed or modified
+resources. All three appear in `release-manifest.json`, `SHA256SUMS.txt` and the
+GitHub upload set. The OSS validator retains an explicit asset allowlist, checks the
+TSV against the requested tag and actual canonical probe bytes, and mirrors GitHub's
+original files without generating replacements. Only after every installer, metadata
+file and probe passes OSS readback may the current stable Latest update `latest.json`.
+Probe objects use `application/octet-stream` and add `no-transform` to the immutable
+cache policy; no `Content-Encoding` is set by the publisher. The TSV uses
+`text/tab-separated-values; charset=utf-8`.
+
+The audited `desktop-v0.1.6` source remains pinned to its original contract, including
+update feeds but no probes. Never append resources to that published Release, edit
+its manifests/checksums or overwrite its immutable OSS objects. Enable this feature
+with a new version containing this pipeline, such as `desktop-v0.1.7`; the package
+version must be advanced as part of separately authorized release preparation.
+Older audited releases keep their existing signing and feed requirements, and new
+releases cannot downgrade the probe requirement by removing manifest entries.
+
+After a new release and its mirror are explicitly authorized, verify and record:
+
+1. The actual tag and all six URLs: GitHub `releases/download/<tag>/<file>` and OSS
+   `releases/<tag>/<file>` for each of the three files above. Compare both probes'
+   exact sizes and SHA-256 across sources, and verify the TSV hash against its release
+   manifest. Confirm anonymous GET and HEAD for every file on both sources.
+2. From browser pages at `https://go.penguin.ooo` and `https://token.penguin.ooo`, fetch
+   and parse the OSS TSV for the same tag. Configure Bucket CORS separately to allow
+   these two origins with GET/HEAD; metadata including `latest.json` and
+   `release-manifest.json` also needs browser-readable responses. Anonymous HTTP success
+   alone does not prove browser CORS access. This code does not change Bucket CORS.
+3. Request bins with browser-like `Accept-Encoding` and confirm that no compression
+   changes the transferred body size. Keep CDN/OSS transformations disabled for probe
+   objects and verify the `no-transform` header. Pseudorandom content limits compression,
+   but actual HTTP encoding and browser behavior still require live acceptance.
+
+This resource support does not change Penguin Go pages or the client's updater source
+selection. Local tests do not publish a new tag or establish real browser acceptance.
 
 ### Manual Mirror and Staging Validation
 
