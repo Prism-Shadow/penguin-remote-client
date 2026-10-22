@@ -1,5 +1,11 @@
 appId: com.prismshadow.penguinremote
 productName: Penguin Remote
+detectUpdateChannel: false
+publish:
+  provider: github
+  owner: Prism-Shadow
+  repo: penguin-remote-client
+  tagNamePrefix: desktop-v
 directories:
   output: ../dist/desktop
   buildResources: build
@@ -34,6 +40,7 @@ afterPack: build/after-pack.cjs
 afterSign: build/after-sign.cjs
 
 win:
+  verifyUpdateCodeSignature: true
   icon: build/icon.png
   artifactName: penguin-remote-win-${arch}.${ext}
   # The Go executable is signed before packaging and copied byte-for-byte.
@@ -45,6 +52,7 @@ win:
     - "!.exe"
   signtoolOptions:
     sign: build/evsign.cjs
+    # WindowsUpdater verifies Authenticode validity without pinning publisher names.
     signingHashAlgorithms:
       - sha256
   target:

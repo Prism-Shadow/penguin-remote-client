@@ -12,6 +12,8 @@ class Element {
   value = "";
   dataset: Record<string, string> = {};
   attributes = new Map<string, string>();
+  style = { properties: new Map<string, string>(), setProperty: (key: string, value: string) => this.style.properties.set(key, value) };
+  getBoundingClientRect = () => ({top:60, height:300});
   children: Element[] = [];
   parent: Element | undefined;
   selectors = new Map<string, Element>();
@@ -24,7 +26,7 @@ class Element {
     remove: (key: string) => this.classes.delete(key),
   };
   setAttribute(key: string, value: string) { this.attributes.set(key, value); }
-  removeAttribute(key: string) { delete this.dataset[key.replace("data-", "")]; }
+  removeAttribute(key: string) { this.attributes.delete(key); delete this.dataset[key.replace("data-", "")]; }
   append(element: Element) { element.parent = this; this.children.push(element); }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this); }
   querySelector(selector: string) {
@@ -44,11 +46,13 @@ function renderer() {
   const html = readFileSync(new URL("../../cmd/penguin-remote/assets/app.html", import.meta.url), "utf8");
   const elements = new Map([...html.matchAll(/id="([^"]+)"/g)].map(match => [match[1]!, new Element()]));
   const element = (id: string) => elements.get(id)!;
+  element("preferencesPanel").hidden = true;
+  element("supportPanel").hidden = true;
   const root = new Element();
   // Leave the initial background request pending; each test controls subsequent requests.
   const context = createContext({
     document: {documentElement: root, getElementById: element, createElement: () => new Element(), querySelectorAll: () => [], addEventListener: () => {}},
-    window: {addEventListener: () => {}}, location: {href: ""},
+    window: {addEventListener: () => {}, innerHeight:680}, location: {href: ""},
     fetch: () => new Promise(() => {}), setInterval: () => {}, setTimeout, clearTimeout, URL, console,
   });
   runInContext(html.match(/<script>([\s\S]*?)<\/script>/)![1]!, context);
@@ -65,6 +69,98 @@ function renderer() {
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
+
+describe("client update controls", () => {
+  it("fits the menu to short windows and restores its natural size when space returns", () => {
+    const ui = renderer();
+    ui.context.window.innerHeight = 260;
+    ui.element('preferencesPanel').hidden = false;
+    runInContext('fitPreferencesPanel()', ui.context);
+    expect(ui.element('preferencesPanel').style.properties.get('max-height')).toBe('188px');
+    expect(ui.element('preferencesPanel').style.properties.get('overflow-y')).toBe('auto');
+    ui.context.window.innerHeight = 680;
+    runInContext('fitPreferencesPanel()', ui.context);
+    expect(ui.element('preferencesPanel').style.properties.get('max-height')).toBe('none');
+    expect(ui.element('preferencesPanel').style.properties.get('overflow-y')).toBe('visible');
+  });
+
+  it("renders bilingual download progress with an unviewed version marker", () => {
+    const ui = renderer();
+    runInContext(`desktopUpdateStatus = {appVersion:'0.1.5',state:'available',version:'0.1.6'}; renderDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(false);
+    expect(ui.element("updateAction").textContent).toBe("下载更新");
+    runInContext(`desktopUpdateStatus = {...desktopUpdateStatus,state:'downloading',percent:47}; setLanguage('en')`, ui.context);
+    expect(ui.element("updateStatus").textContent).toBe("Downloading 0.1.6…");
+    expect(ui.element("updateAction").disabled).toBe(true);
+    expect(ui.element("updateAction").textContent).toBe("47%");
+    expect(ui.element("updateAction").style.properties.get('--update-progress')).toBe('47%');
+    expect(ui.element("updateAction").attributes.get('role')).toBe('progressbar');
+    expect(ui.element("updateAction").attributes.get('aria-valuenow')).toBe('47');
+    runInContext(`desktopUpdateStatus = {...desktopUpdateStatus,state:'downloaded'}; renderDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(false);
+    expect(ui.element("updateAction").textContent).toBe("Restart and update");
+    expect(ui.element("updateAction").disabled).toBe(false);
+    expect(ui.element("updateAction").attributes.has('role')).toBe(false);
+    expect(ui.element("updateAction").classes.has('is-downloading')).toBe(false);
+  });
+
+  it("bounds button progress and restores retry controls after a download failure", () => {
+    const ui = renderer();
+    for (const [percent, label] of [[-5,'0%'],[105,'100%'],[undefined,'0%']] as const) {
+      runInContext(`desktopUpdateStatus = {appVersion:'0.1.5',state:'downloading',version:'0.1.6',percent:${percent}}; renderDesktopUpdate()`, ui.context);
+      expect(ui.element('updateAction').textContent).toBe(label);
+    }
+    runInContext(`desktopUpdateStatus.state='error'; desktopUpdateStatus.step='download'; renderDesktopUpdate()`, ui.context);
+    expect(ui.element('updateAction').textContent).toBe('重试下载');
+    expect(ui.element('updateAction').disabled).toBe(false);
+    expect(ui.element('updateAction').attributes.has('aria-valuenow')).toBe(false);
+    expect(ui.element('updateAction').classes.has('is-downloading')).toBe(false);
+  });
+
+  it("dismisses a version's badge on opening Preferences without downloading", () => {
+    const ui = renderer();
+    ui.response({});
+    runInContext(`desktopUpdateStatus = {appVersion:'0.1.5',state:'available',version:'0.1.6'}; renderDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(false);
+    ui.element("preferencesButton").onclick();
+    expect(ui.element("updateBadge").hidden).toBe(true);
+    expect(ui.context.fetch).toHaveBeenCalledWith('/api/preferences/update-seen', {method:'POST',headers:{'content-type':'application/json','X-Penguin-Update':'1'},body:'{"version":"0.1.6"}'});
+    expect(ui.context.fetch).toHaveBeenCalledTimes(1);
+    runInContext(`closeHeaderMenus(); renderDesktopUpdate(); desktopUpdateStatus.state='downloaded'; renderDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(true);
+    expect(ui.context.fetch).toHaveBeenCalledTimes(1);
+    runInContext(`desktopUpdateStatus = {...desktopUpdateStatus,state:'available',version:'0.1.7'}; renderDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(false);
+  });
+
+  it("restores viewed versions after reload and acknowledges updates arriving in an open menu", async () => {
+    const ui = renderer();
+    ui.response({appVersion:'0.1.5',state:'available',version:'0.1.6',seenVersion:'0.1.6'});
+    runInContext(`updatePollPending=false`, ui.context);
+    await runInContext(`refreshDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(true);
+    ui.element("preferencesButton").onclick();
+    ui.response({appVersion:'0.1.5',state:'available',version:'0.1.7',seenVersion:'0.1.6'});
+    await runInContext(`refreshDesktopUpdate()`, ui.context);
+    expect(ui.element("updateBadge").hidden).toBe(true);
+    expect(ui.context.fetch).toHaveBeenCalledWith('/api/preferences/update-seen', expect.objectContaining({body:'{"version":"0.1.7"}'}));
+  });
+
+  it("requires restart confirmation and sends only the fixed authenticated UI command", async () => {
+    const ui = renderer();
+    runInContext(`desktopUpdateStatus = {appVersion:'0.1.5',state:'downloaded',version:'0.1.6'}`, ui.context);
+    const confirm = vi.fn(() => false);
+    ui.context.window.confirm = confirm;
+    const fetch = vi.fn(async () => ui.respond({}));
+    ui.context.fetch = fetch;
+    await ui.element("updateAction").onclick();
+    expect(fetch).not.toHaveBeenCalled();
+    confirm.mockReturnValue(true);
+    await ui.element("updateAction").onclick();
+    expect(fetch).toHaveBeenCalledWith('/api/desktop/update/install', {method:'POST',headers:{'X-Penguin-Update':'1'}});
+    expect(confirm).toHaveBeenCalledTimes(2);
+  });
+});
 
 describe("client action notifications", () => {
   it("shows scan progress, blocks repeated clicks, then reports the discovered count", async () => {

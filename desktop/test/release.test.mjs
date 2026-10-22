@@ -7,6 +7,15 @@ import { prepareRelease, requiredAssets, signingTargets, verifySigningReports } 
 import { verifyUploadedRelease } from "../../scripts/verify-uploaded-release.mjs";
 import { resourcesDirectory } from "../scripts/verify-package.mjs";
 import { productionGoUrl, releaseTarget, stagingGoUrl } from "../../scripts/release-target.mjs";
+import { updateTargets, stageUpdateMetadata, mergeUpdateMetadata } from "../../scripts/update-metadata.mjs";
+
+function writeUpdateFeeds(dir, version) {
+  for (const target of updateTargets) {
+    fs.writeFileSync(path.join(dir, target.feed), JSON.stringify({ version, files: [{ url: target.asset }] }));
+    stageUpdateMetadata(dir, target.platform, target.arch, version);
+  }
+  mergeUpdateMetadata(dir, version);
+}
 
 function writeSigningReports(dir, commit = "a".repeat(40), penguinGoUrl = productionGoUrl) {
   for (const target of signingTargets) {
@@ -33,6 +42,7 @@ describe("desktop release gates", () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "remote-staging-release-test-"));
     try {
       for (const name of requiredAssets) fs.writeFileSync(path.join(dir, name), "staging-signed-artifact");
+      writeUpdateFeeds(dir, "0.1.3-staging.1");
       writeSigningReports(dir);
       expect(() => prepareRelease(dir, "desktop-v0.1.3-staging.1", "a".repeat(40), "0.1.3-staging.1")).toThrow();
       writeSigningReports(dir, "a".repeat(40), stagingGoUrl);
@@ -72,12 +82,14 @@ describe("desktop release gates", () => {
       fs.unlinkSync(path.join(dir,"untrusted.txt"));
       expect(() => prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toThrow();
       writeSigningReports(dir);
-      expect(prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toHaveLength(10);
+      expect(() => prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toThrow();
+      writeUpdateFeeds(dir, "0.1.0");
+      expect(prepareRelease(dir,"desktop-v0.1.0","a".repeat(40),"0.1.0")).toHaveLength(13);
       const manifest = JSON.parse(fs.readFileSync(path.join(dir,"release-manifest.json"),"utf8"));
       expect(manifest.penguinGoUrl).toBe("https://go.penguin.ooo");
       expect(manifest.trustedCodeSigning).toBe(true);
       expect(manifest.notarized).toBe(true);
-      expect(fs.readFileSync(path.join(dir,"SHA256SUMS.txt"),"utf8").trim().split("\n")).toHaveLength(10);
+      expect(fs.readFileSync(path.join(dir,"SHA256SUMS.txt"),"utf8").trim().split("\n")).toHaveLength(13);
       const release = {
         draft: true,
         prerelease: true,

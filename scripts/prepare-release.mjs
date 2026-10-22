@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { productionGoUrl, releaseTarget } from "./release-target.mjs";
+import { requiredUpdateFeeds, verifyUpdateMetadata } from "./update-metadata.mjs";
 
 export const requiredAssets = [
   "penguin-remote-win-x64.exe",
@@ -47,12 +48,14 @@ export function prepareRelease(directory, tag, commit, version) {
   if (tag !== "desktop-v" + version || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) throw new Error("Release tag/package version mismatch");
   if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("Release source must be a full commit SHA");
   const allowed = new Set([...requiredAssets, ...requiredAssets.map(file => file + ".blockmap"),
+    ...requiredUpdateFeeds,
     ...signingTargets.map(target => target.report)]);
   const files = fs.readdirSync(directory, {withFileTypes:true});
   for (const entry of files) if (!entry.isFile() || !allowed.has(entry.name)) throw new Error("Unexpected release input: " + entry.name);
   for (const file of requiredAssets) if (!fs.existsSync(path.join(directory,file))) throw new Error("Missing release asset: " + file);
   // Reports are emitted only after platform signature/notarization verification.
   verifySigningReports(directory, commit, release.penguinGoUrl);
+  verifyUpdateMetadata(directory, version);
   const assets = files.map(entry => {
     const bytes = fs.readFileSync(path.join(directory,entry.name));
     if (!bytes.length) throw new Error("Empty release asset: " + entry.name);
