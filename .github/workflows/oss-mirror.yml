@@ -1,0 +1,82 @@
+name: Mirror existing desktop Release to OSS
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing published desktop-v<version> tag; mirror only, without rebuilding.
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  mirror:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    # Shared by automatic publication and manual historical retries, across tags.
+    concurrency:
+      group: penguin-remote-client-oss-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: oss-production
+      url: ${{ vars.OSS_PUBLIC_BASE_URL }}
+    env:
+      ALIYUN_OIDC_PROVIDER_ARN: ${{ vars.ALIYUN_OIDC_PROVIDER_ARN }}
+      ALIYUN_ROLE_ARN: ${{ vars.ALIYUN_ROLE_ARN }}
+      OSS_BUCKET: ${{ vars.OSS_BUCKET }}
+      OSS_REGION: ${{ vars.OSS_REGION }}
+      OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+      OSS_PUBLIC_BASE_URL: ${{ vars.OSS_PUBLIC_BASE_URL }}
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      # Manual runs use the selected branch's scripts and the tag's original assets.
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - run: pnpm --dir desktop install --frozen-lockfile --ignore-scripts
+      - name: Validate Environment configuration
+        run: |
+          node --input-type=module -e '
+            import { ossConfig } from "./scripts/oss-release-tools.mjs";
+            ossConfig();
+            for (const key of ["ALIYUN_OIDC_PROVIDER_ARN", "ALIYUN_ROLE_ARN"]) {
+              if (!process.env[key]) throw new Error("Missing Environment variable: " + key);
+            }
+          '
+      - name: Download and verify published GitHub assets
+        run: node scripts/download-release-mirror.mjs "$RUNNER_TEMP/release-mirror-assets" "$RELEASE_TAG"
+      - name: Install checksum-pinned ossutil
+        run: |
+          sh scripts/install-ossutil.sh "$RUNNER_TEMP/ossutil-bin"
+          echo "$RUNNER_TEMP/ossutil-bin" >> "$GITHUB_PATH"
+      - name: Exchange GitHub OIDC token for temporary Alibaba Cloud credentials
+        id: aliyun
+        uses: aliyun/configure-aliyun-credentials-action@1e5248c8d5d93a8781ac344a68e19a43341e79e6
+        with:
+          oidc-provider-arn: ${{ vars.ALIYUN_OIDC_PROVIDER_ARN }}
+          role-to-assume: ${{ vars.ALIYUN_ROLE_ARN }}
+          role-session-name: remote-client-oss-${{ github.run_id }}
+          role-session-expiration: 3600
+          audience: github-actions
+      - name: Mirror exact bytes and verify OSS objects
+        env:
+          OSS_ACCESS_KEY_ID: ${{ steps.aliyun.outputs['aliyun-access-key-id'] }}
+          OSS_ACCESS_KEY_SECRET: ${{ steps.aliyun.outputs['aliyun-access-key-secret'] }}
+          OSS_SESSION_TOKEN: ${{ steps.aliyun.outputs['aliyun-security-token'] }}
+        run: node scripts/publish-release-to-oss.mjs "$RUNNER_TEMP/release-mirror-assets" "$RELEASE_TAG"
