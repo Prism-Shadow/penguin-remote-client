@@ -5,7 +5,7 @@
     "go.sum": "0ffc708520f6ba2fa18bbd3192fd77fd9350a0d7fcf774a50341d83a166805b5",
     "third_party/frp/go.mod": "3251167595ce36bec25d6e6c58cc522547faa6136ed80653bb0ce967c6774fbf",
     "third_party/frp/go.sum": "75c4573a97c9df7800714ad3bc0927108e9738fcd422fdbfae83db15e3e43230",
-    "desktop/pnpm-lock.yaml": "b5799e414913af6ec6f8ffc074840f1c537124f0c4c3dc0544d664c741ca866c"
+    "desktop/pnpm-lock.yaml": "cafc0fd1adf0906b85ac63605087e2b5803b52d1d86efb3e59ddc86dc0176223"
   },
   "goStandardLibrary": {
     "version": "go version go1.25.5 windows/amd64",
@@ -1118,14 +1118,6 @@
       "standaloneLicenseIncluded": false
     },
     {
-      "name": "argparse",
-      "version": "2.0.1",
-      "license": "Python-2.0",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
       "name": "asn1js",
       "version": "3.0.10",
       "license": "BSD-3-Clause",
@@ -1248,14 +1240,6 @@
     {
       "name": "buffer-from",
       "version": "1.1.2",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "builder-util-runtime",
-      "version": "9.7.0",
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
@@ -1496,14 +1480,6 @@
     {
       "name": "cross-spawn",
       "version": "7.0.6",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "debug",
-      "version": "4.4.3",
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
@@ -1855,14 +1831,6 @@
     },
     {
       "name": "fs-extra",
-      "version": "10.1.0",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "fs-extra",
       "version": "11.3.1",
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
@@ -1985,14 +1953,6 @@
       "name": "got",
       "version": "11.8.6",
       "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "graceful-fs",
-      "version": "4.2.11",
-      "license": "ISC",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
       "standaloneLicenseIncluded": true
@@ -2182,14 +2142,6 @@
       "standaloneLicenseIncluded": true
     },
     {
-      "name": "js-yaml",
-      "version": "4.3.2",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
       "name": "json-buffer",
       "version": "3.0.1",
       "license": "MIT",
@@ -2230,24 +2182,8 @@
       "standaloneLicenseIncluded": true
     },
     {
-      "name": "jsonfile",
-      "version": "6.2.1",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
       "name": "keyv",
       "version": "4.5.4",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": false
-    },
-    {
-      "name": "lazy-val",
-      "version": "1.0.5",
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
@@ -2440,14 +2376,6 @@
     {
       "name": "mlly",
       "version": "1.8.2",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "ms",
-      "version": "2.1.3",
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
@@ -2862,14 +2790,6 @@
       "standaloneLicenseIncluded": true
     },
     {
-      "name": "sax",
-      "version": "1.6.1",
-      "license": "BlueOak-1.0.0",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
       "name": "semver-compare",
       "version": "1.0.0",
       "license": "MIT",
@@ -2888,14 +2808,6 @@
     {
       "name": "semver",
       "version": "6.3.1",
-      "license": "ISC",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
-      "name": "semver",
-      "version": "7.7.4",
       "license": "ISC",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
@@ -3286,14 +3198,6 @@
       "standaloneLicenseIncluded": true
     },
     {
-      "name": "universalify",
-      "version": "2.0.1",
-      "license": "MIT",
-      "scope": "build/test only; not shipped as runtime npm packages",
-      "noticeFile": "build-tools.txt",
-      "standaloneLicenseIncluded": true
-    },
-    {
       "name": "unzipper",
       "version": "0.12.5",
       "license": "MIT",
@@ -3451,6 +3355,152 @@
       "license": "MIT",
       "scope": "build/test only; not shipped as runtime npm packages",
       "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "@types/semver",
+      "version": "7.7.1",
+      "license": "MIT",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "yaml",
+      "version": "2.8.1",
+      "license": "ISC",
+      "scope": "build/test only; not shipped as runtime npm packages",
+      "noticeFile": "build-tools.txt",
+      "standaloneLicenseIncluded": true
+    }
+  ],
+  "runtimeNpm": [
+    {
+      "name": "argparse",
+      "version": "2.0.1",
+      "license": "Python-2.0",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "builder-util-runtime",
+      "version": "9.7.0",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "debug",
+      "version": "4.4.3",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "electron-updater",
+      "version": "6.8.9",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "fs-extra",
+      "version": "10.1.0",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "license": "ISC",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "js-yaml",
+      "version": "4.3.2",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "jsonfile",
+      "version": "6.2.1",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lazy-val",
+      "version": "1.0.5",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": false
+    },
+    {
+      "name": "lodash.escaperegexp",
+      "version": "4.1.2",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "lodash.isequal",
+      "version": "4.5.0",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "ms",
+      "version": "2.1.3",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "sax",
+      "version": "1.6.1",
+      "license": "BlueOak-1.0.0",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "semver",
+      "version": "7.7.4",
+      "license": "ISC",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "tiny-typed-emitter",
+      "version": "2.1.0",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
+      "standaloneLicenseIncluded": true
+    },
+    {
+      "name": "universalify",
+      "version": "2.0.1",
+      "license": "MIT",
+      "scope": "bundled desktop updater runtime",
+      "noticeFile": "updater.txt",
       "standaloneLicenseIncluded": true
     }
   ]

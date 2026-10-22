@@ -7,8 +7,13 @@ function renderer() {
   const html = readFileSync(new URL("../../cmd/penguin-remote/assets/app.html", import.meta.url), "utf8");
   const elements = new Map([...html.matchAll(/id="([^"]+)"/g)].map(match => {
     const classes = new Set<string>();
+    const styleProperties = new Map<string, string>();
     return [match[1]!, {
-      textContent: "", innerHTML: "", hidden: false, disabled: false, checked: false, value: "",
+      textContent: "", innerHTML: "", hidden: ["preferencesPanel", "supportPanel"].includes(match[1]!),
+      disabled: false, checked: false, value: "",
+      scrollTop: 0,
+      style: { setProperty: (key: string, value: string) => styleProperties.set(key, value) },
+      getBoundingClientRect: () => ({ top: 60, height: 300 }),
       classList: { toggle: (key: string, on: boolean) => on ? classes.add(key) : classes.delete(key) },
       setAttribute: () => {}, classes,
     }] as const;
@@ -22,7 +27,7 @@ function renderer() {
     },
     querySelectorAll: () => [], addEventListener: () => {},
   };
-  const context = createContext({ document, window: { addEventListener: () => {} },
+  const context = createContext({ document, window: { addEventListener: () => {}, innerHeight: 680 },
     fetch: () => new Promise(() => {}), setInterval: () => {}, URL, console });
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   if (!script) throw new Error("Missing embedded app script");

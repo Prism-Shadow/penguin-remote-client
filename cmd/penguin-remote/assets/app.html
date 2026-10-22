@@ -31,7 +31,7 @@
       --notice-bg: #fef2f2;
     }
     * { box-sizing: border-box; }
-    body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--bg); color: var(--text); }
+    body { min-width: min(320px, 100%); min-height: 100vh; margin: 0; background: var(--bg); color: var(--text); }
     button, input, select { font: inherit; letter-spacing: 0; }
     button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
     button:disabled { cursor: not-allowed; opacity: .45; }
@@ -70,6 +70,14 @@
     .support-panel p { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.35; }
     .preferences-panel { width: min(246px, calc(100vw - 24px)); padding: 12px; }
     .preference-row + .preference-row { margin-top: 12px; }
+    #preferencesButton { position: relative; }
+    .update-badge { position: absolute; top: -3px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--surface); pointer-events: none; }
+    .update-panel { padding-top: 12px; border-top: 1px solid var(--border); }
+    .update-panel p { margin: 6px 0 10px; color: var(--text-muted); font-size: 12px; line-height: 1.6; overflow-wrap: break-word; text-wrap: pretty; }
+    .update-panel [hidden] { display: none; }
+    .update-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .update-actions .button { width: 100%; justify-content: center; text-align: center; }
+    #updateAction.is-downloading { background: linear-gradient(to right, color-mix(in srgb, var(--link) 18%, var(--surface)) var(--update-progress), var(--surface-subtle) var(--update-progress)); color: var(--text); font-variant-numeric: tabular-nums; cursor: default; opacity: 1; }
     .preference-label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 12px; }
     .option-segment { display: inline-flex; align-items: center; gap: 2px; min-height: 32px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-subtle); }
     .option-segment button { display: inline-flex; min-width: 30px; min-height: 26px; align-items: center; justify-content: center; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); font-size: 12px; cursor: pointer; }
@@ -85,7 +93,7 @@
     .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 26px 0 12px; }
     .section-head h2 { margin: 0; font-size: 15px; line-height: 22px; }
     .section-actions { display: flex; align-items: center; gap: 8px; }
-    .button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 6px 12px; border: 1px solid var(--primary); border-radius: 6px; background: var(--primary); color: var(--button-text); font-weight: 600; text-decoration: none; cursor: pointer; }
+    .button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 6px 12px; border: 1px solid var(--primary); border-radius: 6px; background: var(--primary); color: var(--button-text); font-weight: 600; text-decoration: none; white-space: nowrap; cursor: pointer; }
     .button:hover { background: var(--primary-hover); }
     .button.secondary { border-color: var(--border-strong); background: var(--surface); color: var(--text-soft); font-weight: 500; }
     .button.secondary:hover { background: var(--surface-subtle); color: var(--text); }
@@ -258,6 +266,7 @@
         </div>
         <div class="header-menu" id="preferencesMenu">
           <button class="icon-button" id="preferencesButton" type="button" aria-controls="preferencesPanel" aria-expanded="false" aria-haspopup="dialog" aria-label="偏好设置" data-i18n-aria="preferences" title="偏好设置" data-i18n-title="preferences">
+            <span id="updateBadge" class="update-badge" hidden></span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
           </button>
           <div class="header-popover preferences-panel" id="preferencesPanel" role="dialog" aria-label="偏好设置" data-i18n-aria="preferences" hidden>
@@ -275,6 +284,14 @@
               <div class="option-segment" role="group" aria-labelledby="languageLabel">
                 <button id="langZh" type="button" lang="zh-CN" aria-pressed="true" aria-label="中文" title="中文">中</button>
                 <button id="langEn" type="button" lang="en" aria-pressed="false" aria-label="English" title="English">EN</button>
+              </div>
+            </div>
+            <div id="desktopUpdate" class="preference-row update-panel" hidden>
+              <span class="preference-label" data-i18n="clientUpdate">客户端更新</span>
+              <small id="updateVersion"></small>
+              <p id="updateStatus" role="status" aria-live="polite"></p>
+              <div class="update-actions">
+                <button id="updateAction" class="button secondary" type="button" data-i18n="updateCheck">检查更新</button>
               </div>
             </div>
           </div>
@@ -330,6 +347,11 @@
 <script>
 const translations = {
   zh: {
+    clientUpdate:'客户端更新', updateCheck:'检查更新', updateDownload:'下载更新', updateInstall:'重启并更新', updateRetry:'重试下载',
+    updateCurrent:'当前版本 {version}', updateIdle:'可检查是否有新版本。', updateChecking:'正在检查更新…', updateLatest:'已是最新版本。', updateAvailable:'发现新版本 {version}，可下载更新。',
+    updateDownloading:'正在下载 {version}…', updateDownloaded:'{version} 已下载，可重启安装。', updateInstalling:'正在重启并安装更新…', updateFailed:'更新失败，请检查网络后重试。',
+    updateInstallFailed:'安装未能启动，请重试。', updateUnsupported:'此安装方式需手动安装新版客户端。', updatePreview:'预览版本请手动更新，以保持服务环境不变。',
+    updateConfirm:'更新将重启 Penguin Remote，远程连接会暂时中断。是否现在安装？', updateProgress:'下载进度', updateBridgeFailed:'无法连接客户端更新服务，请重试。',
     guideDesktop:'桌面端', guideCommandLine:'命令行', guideQuickstart:'查看安装与启动教程', guideProgress:'第 {step} / {total} 步',
     guideTitle:'使用教程', guideClose:'关闭教程', guideSteps:'教程步骤', guideStepHarness:'启动 Harness', guideStepConnect:'开启远程访问', guideStepAccess:'使用公网地址',
     guideEnlarge:'放大查看截图', guideBack:'返回教程', guidePrevious:'上一步', guideNext:'下一步', guideDone:'我知道了', guideImageNote:'截图为示例，账号、订阅和公网地址以你的客户端为准。',
@@ -404,6 +426,11 @@ subscriptionRefresh:"刷新订阅信息",subscriptionPending:"订阅信息待更
     errorGeneric:'操作未能完成，请稍后重试；如持续出现，请重新登录。'
   },
   en: {
+    clientUpdate:'Client updates', updateCheck:'Check for updates', updateDownload:'Download update', updateInstall:'Restart and update', updateRetry:'Retry download',
+    updateCurrent:'Current version {version}', updateIdle:'Check for a newer version.', updateChecking:'Checking for updates…', updateLatest:'You are up to date.', updateAvailable:'Version {version} is available.',
+    updateDownloading:'Downloading {version}…', updateDownloaded:'{version} is ready to install.', updateInstalling:'Restarting to install the update…', updateFailed:'Update failed. Check your network and try again.',
+    updateInstallFailed:'Installation could not start. Try again.', updateUnsupported:'Install the new client version manually.', updatePreview:'Update preview builds manually to keep the same service environment.',
+    updateConfirm:'Updating will restart Penguin Remote and temporarily interrupt remote connections. Install now?', updateProgress:'Download progress', updateBridgeFailed:'Cannot reach the client update service. Try again.',
     guideDesktop:'Desktop app', guideCommandLine:'Command line', guideQuickstart:'Installation and startup guide', guideProgress:'Step {step} of {total}',
     guideTitle:'Setup guide', guideClose:'Close guide', guideSteps:'Guide steps', guideStepHarness:'Start Harness', guideStepConnect:'Enable remote access', guideStepAccess:'Use public URL',
     guideEnlarge:'Enlarge screenshot', guideBack:'Back to guide', guidePrevious:'Previous', guideNext:'Next', guideDone:'Got it', guideImageNote:'Example screenshots. Use the account, subscription and public URL shown in your own client.',
@@ -694,6 +721,78 @@ function t(key, values = {}) {
   return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ''));
 }
 
+let desktopUpdateStatus = null;
+let updateRequestPending = false;
+let updatePollPending = false;
+let updateBridgeFailed = false;
+const viewedUpdateVersions = new Set();
+
+function markUpdateViewed(version) {
+  if (viewedUpdateVersions.has(version)) return;
+  viewedUpdateVersions.add(version);
+  // Hide immediately; persisting the receipt keeps the same version quiet after restart.
+  void api('/api/preferences/update-seen', {method:'POST', headers:{'content-type':'application/json', 'X-Penguin-Update':'1'}, body:JSON.stringify({version})}).catch(() => {});
+}
+
+function renderDesktopUpdate() {
+  const status = desktopUpdateStatus;
+  if (!status) { fitPreferencesPanel(); return; }
+  document.getElementById('desktopUpdate').hidden = false;
+  document.getElementById('updateVersion').textContent = status.appVersion ? t('updateCurrent', {version:status.appVersion}) : '';
+  const keys = {idle:'updateIdle', checking:'updateChecking', 'up-to-date':'updateLatest', available:'updateAvailable', downloading:'updateDownloading', downloaded:'updateDownloaded', installing:'updateInstalling', error:'updateFailed', unsupported:status.reason === 'preview' ? 'updatePreview' : 'updateUnsupported'};
+  document.getElementById('updateStatus').textContent = t(updateBridgeFailed ? 'updateBridgeFailed' : status.step === 'install' ? 'updateInstallFailed' : keys[status.state] || 'updateFailed', {version:status.version || '', percent:status.percent || 0});
+  const offered = ['available','downloaded'].includes(status.state) && status.version;
+  if (offered && !document.getElementById('preferencesPanel').hidden) markUpdateViewed(status.version);
+  document.getElementById('updateBadge').hidden = !offered || viewedUpdateVersions.has(status.version);
+  const button = document.getElementById('updateAction');
+  button.hidden = status.state === 'unsupported';
+  button.disabled = updateRequestPending || ['checking','downloading','installing'].includes(status.state);
+  const downloading = status.state === 'downloading';
+  const percent = Number.isFinite(status.percent) ? Math.max(0, Math.min(100, Math.round(status.percent))) : 0;
+  button.classList.toggle('is-downloading', downloading);
+  button.style.setProperty('--update-progress', percent + '%');
+  if (downloading) {
+    button.setAttribute('role', 'progressbar');
+    button.setAttribute('aria-label', t('updateProgress'));
+    button.setAttribute('aria-valuemin', '0');
+    button.setAttribute('aria-valuemax', '100');
+    button.setAttribute('aria-valuenow', String(percent));
+    button.textContent = percent + '%';
+  } else {
+    for (const attribute of ['role', 'aria-label', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow']) button.removeAttribute(attribute);
+    button.textContent = t(status.state === 'downloaded' ? 'updateInstall' : status.state === 'available' ? 'updateDownload' : status.state === 'error' && status.step === 'download' ? 'updateRetry' : 'updateCheck');
+  }
+  fitPreferencesPanel();
+}
+
+async function refreshDesktopUpdate() {
+  if (updatePollPending) return;
+  updatePollPending = true;
+  try {
+    const status = await api('/api/desktop/update');
+    // The standalone Go UI does not control desktop installation.
+    if (status.reason === 'no-shell') return;
+    desktopUpdateStatus = status;
+    if (status.seenVersion) viewedUpdateVersions.add(status.seenVersion);
+    updateBridgeFailed = false;
+  } catch { updateBridgeFailed = true; }
+  finally { updatePollPending = false; renderDesktopUpdate(); }
+}
+
+document.getElementById('updateAction').onclick = async () => {
+  if (updateRequestPending || !desktopUpdateStatus) return;
+  const state = desktopUpdateStatus.state;
+  const action = state === 'downloaded' ? 'install' : state === 'available' || (state === 'error' && desktopUpdateStatus.step === 'download') ? 'download' : 'check';
+  if (action === 'install' && !window.confirm(t('updateConfirm'))) return;
+  updateRequestPending = true;
+  renderDesktopUpdate();
+  try {
+    await api('/api/desktop/update/' + action, {method:'POST', headers:{'X-Penguin-Update':'1'}});
+    await refreshDesktopUpdate();
+  } catch { updateBridgeFailed = true; }
+  finally { updateRequestPending = false; renderDesktopUpdate(); }
+};
+
 function setLanguage(next) {
   language = next === 'en' ? 'en' : 'zh';
   document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
@@ -709,6 +808,7 @@ function setLanguage(next) {
   }
   if (currentStatus) render(currentStatus);
   renderGuide();
+  renderDesktopUpdate();
 }
 
 function setTheme(next) {
@@ -973,6 +1073,23 @@ async function chooseTheme(next) {
   } catch (err) { showActionError(err, 'themeFailedToast'); }
 }
 
+function fitPreferencesPanel() {
+  const panel = document.getElementById('preferencesPanel');
+  if (panel.hidden) return;
+  const scrollTop = panel.scrollTop;
+  panel.style.setProperty('max-height', 'none');
+  panel.style.setProperty('overflow-y', 'visible');
+  const bounds = panel.getBoundingClientRect();
+  const availableHeight = Math.max(0, window.innerHeight - bounds.top - 12);
+  if (bounds.height > availableHeight) {
+    panel.style.setProperty('max-height', availableHeight + 'px');
+    panel.style.setProperty('overflow-y', 'auto');
+  }
+  panel.scrollTop = scrollTop;
+}
+
+window.addEventListener('resize', fitPreferencesPanel);
+
 function closeHeaderMenus() {
   for (const [buttonId, panelId] of [['supportButton', 'supportPanel'], ['preferencesButton', 'preferencesPanel']]) {
     document.getElementById(panelId).hidden = true;
@@ -990,7 +1107,10 @@ function toggleHeaderMenu(buttonId, panelId) {
 }
 
 document.getElementById('supportButton').onclick = () => toggleHeaderMenu('supportButton', 'supportPanel');
-document.getElementById('preferencesButton').onclick = () => toggleHeaderMenu('preferencesButton', 'preferencesPanel');
+document.getElementById('preferencesButton').onclick = () => {
+  toggleHeaderMenu('preferencesButton', 'preferencesPanel');
+  renderDesktopUpdate();
+};
 document.addEventListener('pointerdown', event => {
   if (!document.getElementById('supportMenu').contains(event.target) && !document.getElementById('preferencesMenu').contains(event.target)) closeHeaderMenus();
 });
@@ -1009,6 +1129,8 @@ document.getElementById('themeLight').onclick = () => chooseTheme('light');
 document.getElementById('themeDark').onclick = () => chooseTheme('dark');
 setLanguage('zh');
 setTheme('system');
+void refreshDesktopUpdate();
+setInterval(() => { if (!document.hidden) void refreshDesktopUpdate(); }, 1500);
 async function refreshSubscription(manual = false) {
   const update = async id => {
     const status = await api('/api/subscription/refresh', {method:'POST'});

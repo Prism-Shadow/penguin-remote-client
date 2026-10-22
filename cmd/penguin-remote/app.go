@@ -75,6 +75,8 @@ type appServer struct {
 	cancelJournalBroken bool
 	saveConfig          func(string, remote.Config) error
 	saveJournal         func(string, any) error
+	desktopUpdate       *desktopUpdateBridge
+	updateSeenVersion   string
 }
 
 // runningTunnel bundles everything needed to stop a started tunnel exactly once,
@@ -152,6 +154,8 @@ func runApp(args []string) error {
 		language:          loadLanguage(*configPath),
 		theme:             loadTheme(*configPath),
 		clientInstanceID:  clientInstanceID,
+		desktopUpdate:     newDesktopUpdateBridge(os.Getenv("PENGUIN_REMOTE_UPDATE_BRIDGE"), os.Getenv("PENGUIN_REMOTE_UPDATE_SECRET")),
+		updateSeenVersion: loadUpdateSeen(*configPath),
 		runnerStatus:      "stopped",
 		authStatus:        "unchecked",
 	}
@@ -180,6 +184,9 @@ func (a *appServer) routes() http.Handler {
 	mux.HandleFunc("/assets/wechat-support-qr.png", a.handleSupportWechatQR)
 	mux.Handle("/assets/guides/", http.FileServer(http.FS(guideImages)))
 	mux.HandleFunc("/api/status", a.handleStatus)
+	mux.HandleFunc("/api/desktop/update", a.handleDesktopUpdate)
+	mux.HandleFunc("/api/desktop/update/", a.handleDesktopUpdate)
+	mux.HandleFunc("/api/preferences/update-seen", a.handleUpdateSeen)
 	mux.HandleFunc("/api/subscription/refresh", a.handleSubscriptionRefresh)
 	mux.HandleFunc("/api/wake", a.handleWake)
 	mux.HandleFunc("/api/cancellation/retry", a.handleCancelRetry)

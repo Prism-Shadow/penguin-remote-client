@@ -83,6 +83,46 @@ An existing published version is never overwritten. A failed draft upload may
 be retried only for the same source commit. All tag/version and asset-completeness
 gates run before publication; failed platform builds leave no published release.
 
+## Client Updates
+
+Stable packaged clients check GitHub Releases after startup and every six hours.
+Preferences shows the running version, check result and download progress. Download
+and restart/install are separate user actions; ordinary quit does not install a
+downloaded update. Installing restarts the desktop app and interrupts active remote
+connections. Tunnel intent, authorization, cancellation and recovery logic are not
+changed by the updater. Releases without an updater require one manual upgrade.
+
+The Preferences badge marks an unviewed version. Opening Preferences dismisses it
+for that version, regardless of download or installation. The receipt is stored
+alongside the UI preferences and survives restarts; a newer version can raise a
+new badge.
+
+Windows x64 NSIS, macOS x64/arm64 and Linux x64 AppImage installations can update.
+Development runs, preview/staging builds, unsupported architectures and Linux deb
+installations use manual downloads. Stable clients never select prereleases or
+automatically downgrade. Keep the `desktop-v<version>` tag convention and use a new
+version for releases containing the updater; do not replace existing release assets.
+
+Packaging declares the GitHub publish provider while retaining `--publish never`.
+Each matrix job stages architecture-specific update metadata after signature and
+notarization checks. The release job merges these snapshots into `latest.yml`,
+`latest-mac.yml` (both ZIP architectures) and `latest-linux.yml`. DMGs remain manual
+downloads and are excluded from the macOS update feed. SHA-512 and file sizes bind
+the feeds to final package bytes; the release manifest and upload verification also
+cover the feeds and available blockmaps. Missing or inconsistent feeds block release.
+
+Windows uses the same Authenticode validity verification as PenguinHarness,
+without pinning signing-service publisher names. Fresh and cached downloads are
+verified before readiness and checked again before installation; invalid cached
+installers are removed so a new check and download can recover. macOS retains
+Developer ID signing and notarization requirements. Update
+checks and downloads use Electron networking and its system proxy configuration.
+
+Validate an installed older updater-enabled build against a newer signed build on
+Windows, both macOS architectures and AppImage. Verify restart, installed version,
+configuration retention, download retry and failure handling. Unit tests and package
+verification alone do not establish actual installation acceptance.
+
 ## Acceptance Boundaries
 
 Stable releases become Latest only after the full signing and upload checks pass.

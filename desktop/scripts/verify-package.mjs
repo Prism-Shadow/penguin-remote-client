@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { releaseTarget } from "../../scripts/release-target.mjs";
 import nativeIntegrity from "../build/native-integrity.cjs";
+import yaml from "yaml";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -28,6 +29,10 @@ export function verifyPackage(platform, arch) {
   const metadata = JSON.parse(fs.readFileSync(path.join(root, "desktop/package.json"), "utf8"));
   const expectedURL = (process.env.PENGUIN_REMOTE_GO_URL || releaseTarget(metadata.version).penguinGoUrl).trim();
   if (config.penguinGoUrl !== expectedURL) throw new Error("Packaged service address differs from build target");
+  const updateConfig = yaml.parse(fs.readFileSync(path.join(resources, "app-update.yml"), "utf8"));
+  if (updateConfig.provider !== "github" || updateConfig.owner !== "Prism-Shadow" || updateConfig.repo !== "penguin-remote-client") {
+    throw new Error("Packaged update provider differs from the Remote release repository");
+  }
 
   const files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "third_party/frp/LICENSE", "third_party/frp/REMOTE_CHANGES.md"];
   for (const entry of fs.readdirSync(path.join(root, "third_party/licenses"), { withFileTypes: true })) {

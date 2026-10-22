@@ -68,6 +68,31 @@ Platform-specific modules need not be present in every executable.
 | `sigs.k8s.io/json` | `v0.0.0-20221116044647-bc3834ca7abd` | windows/amd64, darwin/amd64, darwin/arm64, linux/amd64, linux/arm64 |
 | `sigs.k8s.io/yaml` | `v1.3.0` | windows/amd64, darwin/amd64, darwin/arm64, linux/amd64, linux/arm64 |
 
+## Desktop Updater Runtime
+
+The Electron main process bundles the following npm dependencies for client
+updates. Their original licenses are included in
+[the updater license collection](third_party/licenses/updater.txt).
+
+| Package | Version | Declared License |
+| --- | --- | --- |
+| `argparse` | `2.0.1` | Python-2.0 |
+| `builder-util-runtime` | `9.7.0` | MIT |
+| `debug` | `4.4.3` | MIT |
+| `electron-updater` | `6.8.9` | MIT |
+| `fs-extra` | `10.1.0` | MIT |
+| `graceful-fs` | `4.2.11` | ISC |
+| `js-yaml` | `4.3.2` | MIT |
+| `jsonfile` | `6.2.1` | MIT |
+| `lazy-val` | `1.0.5` | MIT |
+| `lodash.escaperegexp` | `4.1.2` | MIT |
+| `lodash.isequal` | `4.5.0` | MIT |
+| `ms` | `2.1.3` | MIT |
+| `sax` | `1.6.1` | BlueOak-1.0.0 |
+| `semver` | `7.7.4` | ISC |
+| `tiny-typed-emitter` | `2.1.0` | MIT |
+| `universalify` | `2.0.1` | MIT |
+
 ## Build And Test Tools
 
 The following installed npm tools support development, testing or packaging.
@@ -136,7 +161,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `ansi-styles` | `4.3.0` | MIT | Included |
 | `any-promise` | `1.3.0` | MIT | Included |
 | `app-builder-lib` | `26.16.1` | MIT | No; published README included |
-| `argparse` | `2.0.1` | Python-2.0 | Included |
 | `asn1js` | `3.0.10` | BSD-3-Clause | Included |
 | `assertion-error` | `2.0.1` | MIT | Included |
 | `async-exit-hook` | `2.0.1` | MIT | Included |
@@ -153,7 +177,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `brace-expansion` | `2.1.7` | MIT | Included |
 | `brace-expansion` | `5.0.12` | MIT | Included |
 | `buffer-from` | `1.1.2` | MIT | Included |
-| `builder-util-runtime` | `9.7.0` | MIT | Included |
 | `builder-util` | `26.16.0` | MIT | Included |
 | `bundle-require` | `5.1.0` | MIT | Included |
 | `bytestreamjs` | `2.0.1` | BSD-3-Clause | Included |
@@ -184,7 +207,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `core-util-is` | `1.0.3` | MIT | Included |
 | `cross-dirname` | `0.1.0` | MIT | No; published README included |
 | `cross-spawn` | `7.0.6` | MIT | Included |
-| `debug` | `4.4.3` | MIT | Included |
 | `decompress-response` | `6.0.0` | MIT | Included |
 | `deep-eql` | `5.0.2` | MIT | Included |
 | `defer-to-connect` | `2.0.1` | MIT | Included |
@@ -228,7 +250,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `filelist` | `1.0.6` | Apache-2.0 | No; published README included |
 | `fix-dts-default-cjs-exports` | `1.0.1` | MIT | Included |
 | `form-data` | `4.0.6` | MIT | Included |
-| `fs-extra` | `10.1.0` | MIT | Included |
 | `fs-extra` | `11.3.1` | MIT | Included |
 | `fs-extra` | `11.4.0` | MIT | Included |
 | `fs-extra` | `7.0.1` | MIT | Included |
@@ -245,7 +266,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `globalthis` | `1.0.4` | MIT | Included |
 | `gopd` | `1.2.0` | MIT | Included |
 | `got` | `11.8.6` | MIT | Included |
-| `graceful-fs` | `4.2.11` | ISC | Included |
 | `has-flag` | `4.0.0` | MIT | Included |
 | `has-property-descriptors` | `1.0.2` | MIT | Included |
 | `has-symbols` | `1.1.0` | MIT | Included |
@@ -269,15 +289,12 @@ installation are not claimed as individually inventoried or redistributed.
 | `jiti` | `2.7.0` | MIT | Included |
 | `joycon` | `3.1.1` | MIT | Included |
 | `js-tokens` | `9.0.1` | MIT | Included |
-| `js-yaml` | `4.3.2` | MIT | Included |
 | `json-buffer` | `3.0.1` | MIT | Included |
 | `json-schema-traverse` | `1.0.0` | MIT | Included |
 | `json-stringify-safe` | `5.0.1` | ISC | Included |
 | `json5` | `2.2.3` | MIT | Included |
 | `jsonfile` | `4.0.0` | MIT | Included |
-| `jsonfile` | `6.2.1` | MIT | Included |
 | `keyv` | `4.5.4` | MIT | No; published README included |
-| `lazy-val` | `1.0.5` | MIT | No; published README included |
 | `lilconfig` | `3.1.3` | MIT | Included |
 | `lines-and-columns` | `1.2.4` | MIT | Included |
 | `load-tsconfig` | `0.2.5` | MIT | Included |
@@ -302,7 +319,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `minizlib` | `3.1.0` | MIT | Included |
 | `mkdirp` | `0.5.6` | MIT | Included |
 | `mlly` | `1.8.2` | MIT | Included |
-| `ms` | `2.1.3` | MIT | Included |
 | `mz` | `2.7.0` | MIT | Included |
 | `nanoid` | `3.3.19` | MIT | Included |
 | `node-abi` | `4.35.0` | MIT | Included |
@@ -354,11 +370,9 @@ installation are not claimed as individually inventoried or redistributed.
 | `rollup` | `4.63.4` | MIT | Included |
 | `safe-buffer` | `5.1.2` | MIT | Included |
 | `sanitize-filename` | `1.6.4` | WTFPL OR ISC | Included |
-| `sax` | `1.6.1` | BlueOak-1.0.0 | Included |
 | `semver-compare` | `1.0.0` | MIT | Included |
 | `semver` | `5.7.2` | ISC | Included |
 | `semver` | `6.3.1` | ISC | Included |
-| `semver` | `7.7.4` | ISC | Included |
 | `semver` | `7.8.5` | ISC | Included |
 | `serialize-error` | `7.0.1` | MIT | Included |
 | `shebang-command` | `2.0.0` | MIT | Included |
@@ -407,7 +421,6 @@ installation are not claimed as individually inventoried or redistributed.
 | `undici` | `6.28.1` | MIT | Included |
 | `undici` | `7.29.1` | MIT | Included |
 | `universalify` | `0.1.2` | MIT | Included |
-| `universalify` | `2.0.1` | MIT | Included |
 | `unzipper` | `0.12.5` | MIT | Included |
 | `utf8-byte-length` | `1.0.5` | (WTFPL OR MIT) | Included |
 | `util-deprecate` | `1.0.2` | MIT | Included |
@@ -428,6 +441,9 @@ installation are not claimed as individually inventoried or redistributed.
 | `yargs-parser` | `21.1.1` | ISC | Included |
 | `yargs` | `17.7.3` | MIT | Included |
 | `yocto-queue` | `0.1.0` | MIT | Included |
+
+| `yaml` | `2.8.1` | ISC | Included |
+| `@types/semver` | `7.7.1` | MIT | Included |
 
 ## Distribution And Maintenance
 

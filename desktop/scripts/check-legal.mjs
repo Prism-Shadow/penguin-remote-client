@@ -13,6 +13,9 @@ for (const [relative, expected] of Object.entries(manifest.dependencyFiles)) {
   const actual = crypto.createHash("sha256").update(text).digest("hex");
   if (actual !== expected) throw new Error("Review and update third-party notices after changing " + relative);
 }
+for (const entry of manifest.runtimeNpm ?? []) {
+  if (!fs.statSync(path.join(root, "third_party/licenses", entry.noticeFile)).size) throw new Error("Missing runtime dependency notice: " + entry.name);
+}
 const electron = JSON.parse(fs.readFileSync(path.join(root, "desktop/node_modules/electron/package.json"), "utf8"));
 if (electron.version !== manifest.electron.version) throw new Error("Electron license inventory version is stale");
 console.log("License resources and dependency inventory verified");

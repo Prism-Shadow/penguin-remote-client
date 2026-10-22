@@ -3,6 +3,10 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { app, BrowserWindow, dialog, shell, session, powerMonitor } from "electron";
+import electronUpdater from "electron-updater";
+import { UpdateController, updateUnsupportedReason } from "./update-controller.js";
+import { startUpdateBridge } from "./update-bridge.js";
+import { WindowsUpdater } from "./windows-updater.js";
 import {
   configPathForService,
   isLocalAppURL,
@@ -26,6 +30,16 @@ let mainWindow: BrowserWindow | null = null;
 let remoteProcess: ChildProcess | null = null;
 let appOrigin: string | null = null;
 let quitting = false;
+let updateBridge: Awaited<ReturnType<typeof startUpdateBridge>> | null = null;
+const autoUpdater = process.platform === "win32" ? new WindowsUpdater() : electronUpdater.autoUpdater;
+autoUpdater.logger = null;
+const updates = new UpdateController(autoUpdater, app.getVersion(), updateUnsupportedReason(
+  app.isPackaged, app.getVersion(), process.platform, process.arch, process.env.APPIMAGE,
+), async () => {
+  // Keep the existing before-quit cleanup. On macOS the updater first prepares
+  // the native installation; a preparation error must leave the client running.
+  autoUpdater.quitAndInstall(false, true);
+}, message => appendLog("[updater] " + message));
 
 function appendLog(message: string): void {
   try {
@@ -84,7 +98,8 @@ async function startRemoteProcess(): Promise<string> {
 
   const child = spawn(executable, args, {
     cwd: userData,
- env:{...process.env,PENGUIN_REMOTE_SYSTEM_PROXY_SECRET:networkBridge.secret},
+ env:{...process.env,PENGUIN_REMOTE_SYSTEM_PROXY_SECRET:networkBridge.secret,
+   PENGUIN_REMOTE_UPDATE_BRIDGE:updateBridge?.url ?? "",PENGUIN_REMOTE_UPDATE_SECRET:updateBridge?.secret ?? ""},
     windowsHide: true,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -214,8 +229,10 @@ if (!hasSingleInstanceLock) {
 
   app.whenReady()
     .then(async () => {
+      updateBridge = await startUpdateBridge(updates);
       appOrigin = await startRemoteProcess();
       createWindow(appOrigin);
+      updates.start();
       app.on("activate", () => {
         if (mainWindow === null && appOrigin !== null) createWindow(appOrigin);
       });
@@ -237,3 +254,5 @@ app.on("before-quit", (event) => {
   quitting = true;
   void stopRemoteProcess().finally(() => app.quit());
 });
+
+app.on("will-quit", () => { updateBridge?.close(); updateBridge = null; });
