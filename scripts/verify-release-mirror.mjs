@@ -2,8 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { requiredAssets, signingTargets, verifySigningReports } from "./prepare-release.mjs";
-import { releaseTarget } from "./release-target.mjs";
+import { releaseTarget, releaseVersion } from "./release-target.mjs";
+export { releaseVersion } from "./release-target.mjs";
 import { requiredUpdateFeeds, verifyUpdateMetadata } from "./update-metadata.mjs";
+import { downloadResourceFiles, verifyReleaseDownloadManifest } from "./generate-release-download-manifest.mjs";
 
 export const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
@@ -17,22 +19,14 @@ const historicalContracts = new Map([
   ["desktop-v0.1.3", { sourceCommit: "de6b84e0a0d87bbf5a2c7dafcfd2013dbdccce79", signed: true }],
   ["desktop-v0.1.4", { sourceCommit: "8897e13300f87effc00c9fab4e837a33313fce79", signed: true }],
   ["desktop-v0.1.5", { sourceCommit: "98edd11798b054f3cde5f131a25149289cd538d6", signed: true }],
+  ["desktop-v0.1.6", { sourceCommit: "147d71a22aea87e2b1abb0807e48c73c4d4f4f45", signed: true, feeds: true }],
 ]);
 
 function assetContract(tag, sourceCommit) {
   const historical = historicalContracts.get(tag);
-  if (!historical) return { signed: true, feeds: true, legacyLinux: false };
+  if (!historical) return { signed: true, feeds: true, probes: true, legacyLinux: false };
   if (historical.sourceCommit !== sourceCommit) throw new Error("Historical release sourceCommit mismatch: " + tag);
-  return { ...historical, feeds: false, legacyLinux: historical.legacyLinux ?? false };
-}
-
-export function releaseVersion(tag) {
-  if (typeof tag !== "string" || !/^desktop-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(tag) || tag.includes("..")) {
-    throw new Error("Expected a safe complete desktop-v<version> tag");
-  }
-  const version = tag.slice("desktop-v".length);
-  releaseTarget(version);
-  return version;
+  return { ...historical, feeds: historical.feeds ?? false, probes: false, legacyLinux: historical.legacyLinux ?? false };
 }
 
 export function verifyPublicRelease(release, tag) {
@@ -102,17 +96,19 @@ export function verifyReleaseMirror(directory, release, tag) {
     name.replace("linux-x86_64", "linux-x64").replace("linux-amd64", "linux-x64") : name);
   const feeds = contract.feeds ? requiredUpdateFeeds : [];
   const reports = contract.signed ? signingTargets.map(target => target.report) : [];
+  const probes = contract.probes ? downloadResourceFiles : [];
   if (manifest.trustedCodeSigning !== contract.signed || manifest.notarized !== contract.signed) {
     throw new Error("Release signing contract mismatch: " + tag);
   }
-  for (const name of [...installers, ...reports, ...feeds]) {
+  for (const name of [...installers, ...reports, ...feeds, ...probes]) {
     if (!listed.has(name)) throw new Error("Missing required Client release asset: " + name);
   }
-  const allowed = new Set([...installers, ...installers.map(name => name + ".blockmap"), ...reports, ...feeds]);
+  const allowed = new Set([...installers, ...installers.map(name => name + ".blockmap"), ...reports, ...feeds, ...probes]);
   for (const name of listed) if (!allowed.has(name)) throw new Error("Unknown Client release asset: " + name);
   if (contract.signed) {
     verifySigningReports(directory, manifest.sourceCommit, target.penguinGoUrl);
   }
   if (contract.feeds) verifyUpdateMetadata(directory, version);
+  if (contract.probes) verifyReleaseDownloadManifest(directory, tag);
   return { manifest, files: names.sort() };
 }

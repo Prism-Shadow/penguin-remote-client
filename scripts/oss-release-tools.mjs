@@ -38,12 +38,13 @@ export function ossClient(config, scratch, run = command, binary = process.env.O
         fs.rmSync(destination, { force: true });
       }
     },
-    put(key, bytes, { immutable = false, cache = "no-cache" } = {}) {
+    put(key, bytes, { immutable = false, cache = "no-cache", contentType } = {}) {
       const source = path.join(scratch, `put-${sequence++}`);
       fs.writeFileSync(source, bytes);
       try {
         run(binary, ["api", "put-object", "--bucket", config.bucket, "--key", key,
           "--body", `file://${source}`, ...(immutable ? ["--forbid-overwrite"] : []),
+          ...(contentType ? ["--content-type", contentType] : []),
           "--cache-control", cache, ...options]);
       } finally {
         fs.rmSync(source, { force: true });
