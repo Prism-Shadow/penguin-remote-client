@@ -50,7 +50,39 @@ It does not rely on a `release` event: GitHub does not start another workflow fr
 Release created with `GITHUB_TOKEN`. PRs, ordinary main pushes and the original manual
 desktop build/signing rehearsals cannot invoke the OSS publisher. A mirror failure
 leaves the already published GitHub Release available and can be retried separately.
-The app's UI and updater continue to use their existing download sources.
+Desktop update source selection uses the published GitHub and OSS assets as described below.
+
+### Desktop Update Source Selection
+
+The desktop shell discovers the stable target from GitHub Releases and the dedicated
+Client OSS `latest.json` in parallel. A valid GitHub result takes precedence even when
+the mirror points to a different version. When GitHub discovery is unavailable, a
+validated OSS pointer may supply the stable target. If neither discovery succeeds,
+the updater retains its standard GitHub provider. Preview builds, unsupported forms,
+package-manager Linux installations and downgrades remain excluded.
+
+Only a mirror pointer matching the selected tag enables OSS as a candidate. Both
+feeds are pinned to that immutable `desktop-v<version>` directory. The shell reads
+the existing three-row download manifest and verifies the 64 KiB probes on both
+sources. If both succeed, it measures the GitHub 1 MiB probe first. GitHub wins at
+256 KiB/s or above; below that speed, OSS wins only when more than 1.5 times faster.
+A single reachable source wins directly. Unavailable probes keep GitHub first;
+the confirmed same-version OSS feed remains a backup, including for historical
+releases without probes. Probe success requires the exact size and SHA-256 and no
+non-identity content encoding. Discovery and probes share a 26-second budget,
+including response bodies, and use Electron's proxy-aware `net.fetch`.
+
+One check/download cycle may switch sources once after a transport failure, missing
+feed/asset or retryable HTTP error. Download fallback rechecks the exact offered
+version and updater eligibility before downloading. Integrity, signature and version
+mismatches stop the attempt and require a fresh check. Ordinary download failures
+can be retried by the user. SHA-512 validation and Windows signature checks on new
+downloads, cached installers and installation remain active. Downloads and restarts
+still require separate user actions; switching does not install automatically.
+
+Logs record the selected tag/source and any fallback. No bucket changes or release
+rewrites are needed. Previously installed clients acquire this behavior only after
+updating to a desktop build containing it through their existing update path.
 
 ### Environment Variables and Trust
 

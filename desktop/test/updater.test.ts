@@ -9,6 +9,7 @@ class FakeUpdater extends EventEmitter {
   autoInstallOnAppQuit = true;
   allowPrerelease = true;
   allowDowngrade = true;
+  setFeedURL = vi.fn();
   checkForUpdates = vi.fn(async () => ({ isUpdateAvailable: true, updateInfo: { version: "0.1.6" } }));
   downloadUpdate = vi.fn(async () => {});
 }

@@ -1,7 +1,7 @@
 import electronUpdater from "electron-updater";
 import type { DownloadExecutorTask } from "electron-updater/out/AppUpdater.js";
 import { verifyWindowsUpdateSignature } from "./windows-update-signature.js";
-import { WindowsUpdateVerificationError } from "./update-errors.js";
+import { UpdateIntegrityError, WindowsUpdateVerificationError } from "./update-errors.js";
 export { WindowsUpdateVerificationError } from "./update-errors.js";
 
 /** Windows NSIS updates, including installers recovered from the download cache. */
@@ -28,7 +28,7 @@ export class WindowsUpdater extends electronUpdater.NsisUpdater {
           if (failure !== null) throw new Error(failure);
         } catch {
           await this.downloadedUpdateHelper?.clear();
-          throw new Error("Windows update signature could not be verified.");
+          throw new UpdateIntegrityError("Windows update signature could not be verified.");
         }
         this.dispatchUpdateDownloaded(event);
         this.addQuitHandler();
