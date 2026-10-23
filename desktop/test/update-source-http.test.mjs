@@ -23,6 +23,7 @@ const cleanup = [];
 
 afterEach(async () => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   for (const clean of cleanup.splice(0).reverse()) await clean();
 });
 
@@ -135,7 +136,15 @@ describe.skipIf(process.platform !== "win32")("real updater with local HTTP sour
 });
 
 describe("platform-specific generic feeds", () => {
-  it.each([["win32", "latest.yml"], ["darwin", "latest-mac.yml"], ["linux", "latest-linux.yml"]])("requests the correct channel for %s", async (platform, file) => {
+  it.each([
+    ["win32", "x64", "latest.yml"],
+    ["win32", "arm64", "latest.yml"],
+    ["darwin", "x64", "latest-mac.yml"],
+    ["darwin", "arm64", "latest-mac.yml"],
+    ["linux", "x64", "latest-linux.yml"],
+    ["linux", "arm64", "latest-linux-arm64.yml"],
+  ])("requests the correct channel for %s %s", async (platform, arch, file) => {
+    vi.stubEnv("TEST_UPDATER_ARCH", arch);
     const request = vi.fn(async () => feed());
     const provider = new GenericProvider({ provider: "generic", url: `${OSS_RELEASE_ROOT}/${tag}/` }, { channel: null, isAddNoCacheQuery: false }, { platform, executor: { request } });
     const info = await provider.getLatestVersion();
