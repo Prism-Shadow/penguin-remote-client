@@ -1,4 +1,5 @@
-import { WindowsUpdateVerificationError } from "./update-errors.js";
+import { canRetryUpdateSource, isUpdateIntegrityError, UpdateIntegrityError, WindowsUpdateVerificationError } from "./update-errors.js";
+import type { FeedSelection, UpdateFeed } from "./update-source.js";
 
 export type UpdateState = "idle" | "checking" | "up-to-date" | "available" | "downloading" | "downloaded" | "installing" | "error" | "unsupported";
 export interface UpdateStatus {
@@ -15,6 +16,7 @@ export interface Updater {
   autoInstallOnAppQuit: boolean;
   allowPrerelease: boolean;
   allowDowngrade: boolean;
+  setFeedURL(feed: UpdateFeed): void;
   on(event: "download-progress", listener: (progress: { percent: number }) => void): unknown;
   on(event: "error", listener: (error: Error) => void): unknown;
   checkForUpdates(): Promise<{ isUpdateAvailable: boolean; updateInfo: { version: string } } | null>;
@@ -37,9 +39,12 @@ export class UpdateController {
   private busy = false;
   private timer?: ReturnType<typeof setInterval>;
   private firstCheck?: ReturnType<typeof setTimeout>;
+  private fallback: UpdateFeed | undefined;
+  private targetVersion: string | undefined;
 
   constructor(private updater: Updater, version: string, reason: string | undefined,
-    private install: () => Promise<void>, private log: (message: string) => void) {
+    private install: () => Promise<void>, private log: (message: string) => void,
+    private selectFeed?: () => Promise<FeedSelection>) {
     this.status = { appVersion: version, state: reason ? "unsupported" : "idle", ...(reason ? { reason } : {}) };
     updater.autoDownload = false;
     updater.autoInstallOnAppQuit = false;
@@ -73,6 +78,65 @@ export class UpdateController {
 
   close(): void { clearTimeout(this.firstCheck); clearInterval(this.timer); }
 
+  private setFeed(feed: UpdateFeed): void {
+    this.updater.setFeedURL(feed);
+    this.updater.allowPrerelease = false;
+    this.updater.allowDowngrade = false;
+  }
+
+  private switchSource(error: unknown): boolean {
+    if (!this.fallback || !canRetryUpdateSource(error)) return false;
+    const next = this.fallback;
+    this.fallback = undefined;
+    this.setFeed(next);
+    this.log(`Retrying ${this.targetVersion ?? "update"} on the other source.`);
+    return true;
+  }
+
+  private async checkSelectedFeed(requireAvailable = false) {
+    const result = await this.updater.checkForUpdates();
+    const version = result?.updateInfo?.version;
+    if (!version) throw new UpdateIntegrityError("Update feed returned no version");
+    if (this.targetVersion !== undefined && version !== this.targetVersion) {
+      throw new UpdateIntegrityError("Update source returned a different version than the selected release");
+    }
+    if (requireAvailable && (!result.isUpdateAvailable || !newerStableVersion(version, this.status.appVersion))) {
+      throw new UpdateIntegrityError("Update source did not offer the selected release for this installation");
+    }
+    return result;
+  }
+
+  private async checkWithFallback() {
+    this.fallback = undefined;
+    this.targetVersion = undefined;
+    if (this.selectFeed) {
+      const selection = await this.selectFeed();
+      this.targetVersion = selection.version;
+      this.fallback = selection.fallback;
+      this.setFeed(selection.primary);
+    }
+    try {
+      return await this.checkSelectedFeed();
+    } catch (error) {
+      if (!this.switchSource(error)) throw error;
+      return this.checkSelectedFeed();
+    }
+  }
+
+  private async downloadWithFallback(retry: boolean): Promise<void> {
+    try {
+      // A failed check can leave updater internals pointing at a rejected version.
+      // User retries must revalidate before using any of that state.
+      if (retry) await this.checkSelectedFeed(true);
+      await this.updater.downloadUpdate();
+    } catch (error) {
+      if (!this.switchSource(error)) throw error;
+      await this.checkSelectedFeed(true);
+      this.status = { ...this.status, percent: 0 };
+      await this.updater.downloadUpdate();
+    }
+  }
+
   async command(action: "check" | "download" | "install"): Promise<void> {
     if (this.busy || this.status.state === "unsupported" || this.status.state === "installing") return;
     const previous = this.snapshot();
@@ -85,13 +149,14 @@ export class UpdateController {
     try {
       if (action === "check") {
         this.status = { ...base, state: "checking" };
-        const result = await this.updater.checkForUpdates();
+        const result = await this.checkWithFallback();
         const version = result?.updateInfo?.version;
         if (!version) throw new Error("Update feed returned no version");
+        this.targetVersion = version;
         this.status = { ...base, state: result?.isUpdateAvailable && newerStableVersion(version, base.appVersion) ? "available" : "up-to-date", version };
       } else if (action === "download") {
         this.status = { ...base, state: "downloading", version: previous.version!, percent: 0 };
-        await this.updater.downloadUpdate();
+        await this.downloadWithFallback(previous.state === "error");
         this.status = { ...base, state: "downloaded", version: previous.version!, percent: 100 };
       } else {
         this.status = { ...base, state: "installing", version: previous.version! };
@@ -102,7 +167,9 @@ export class UpdateController {
       // A failed restart must leave the downloaded package available to retry.
       this.status = error instanceof WindowsUpdateVerificationError ? {
         ...base, state: "error", step: "install",
-      } : action === "install" ? { ...previous, step: "install" } : {
+      } : action === "install" ? { ...previous, step: "install" } : isUpdateIntegrityError(error) ? {
+        ...base, state: "error", step: "check",
+      } : {
         ...base, state: "error", step: action, ...(action === "download" ? { version: previous.version! } : {}),
       };
     } finally { this.busy = false; }

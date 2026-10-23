@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-import { app, BrowserWindow, dialog, shell, session, powerMonitor } from "electron";
+import { app, BrowserWindow, dialog, shell, session, powerMonitor, net } from "electron";
 import electronUpdater from "electron-updater";
 import { UpdateController, updateUnsupportedReason } from "./update-controller.js";
 import { startUpdateBridge } from "./update-bridge.js";
 import { WindowsUpdater } from "./windows-updater.js";
+import { selectUpdateFeed } from "./update-source.js";
 import {
   configPathForService,
   isLocalAppURL,
@@ -39,7 +40,10 @@ const updates = new UpdateController(autoUpdater, app.getVersion(), updateUnsupp
   // Keep the existing before-quit cleanup. On macOS the updater first prepares
   // the native installation; a preparation error must leave the client running.
   autoUpdater.quitAndInstall(false, true);
-}, message => appendLog("[updater] " + message));
+}, message => appendLog("[updater] " + message), () => selectUpdateFeed({
+  fetchFn: (url, init) => net.fetch(url, init),
+  log: message => appendLog("[updater] " + message),
+}));
 
 function appendLog(message: string): void {
   try {
