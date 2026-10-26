@@ -88,6 +88,7 @@ func start(targetURL, apiURL, publicURL string, issuer SessionIssuer, initial ha
 	}
 	reverseProxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
+			extension := extensionEndpoint(req)
 			upstream := apiTarget
 			authority := publicAuthority.Host
 			if split && !harnessAPIPath(req.URL.Path) {
@@ -104,13 +105,13 @@ func start(targetURL, apiURL, publicURL string, issuer SessionIssuer, initial ha
 			} else {
 				req.URL.RawQuery = upstream.RawQuery + "&" + req.URL.RawQuery
 			}
-			// The public origin was checked before any local credentials were added.
+			// The origin was checked before any local credentials were added.
 			// Preserve the external host while matching the local HTTP transport.
 			req.Host = authority
 			req.Header.Set("X-Forwarded-Host", authority)
 			req.Header.Set("X-Forwarded-Proto", upstream.Scheme)
 			req.Header.Del("Forwarded")
-			if req.Header.Get("Origin") != "" {
+			if !extension && req.Header.Get("Origin") != "" {
 				req.Header.Set("Origin", upstream.Scheme+"://"+authority)
 			}
 		},
@@ -130,8 +131,18 @@ func start(targetURL, apiURL, publicURL string, issuer SessionIssuer, initial ha
 	}
 	p.server = &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !public.allows(r.Header.Values("Origin")) {
+			extension := extensionEndpoint(r)
+			if (!public.allows(r.Header.Values("Origin")) && !allowsExtensionOrigin(r)) ||
+				(extension && extensionHopHeaders(r)) {
 				http.Error(w, "request origin does not match this tunnel", http.StatusForbidden)
+				return
+			}
+			if extension {
+				// Harness owns code/token validation and revocation. Ambient cookies
+				// and Authorization are not part of the extension protocol.
+				r.Header.Del("Cookie")
+				r.Header.Del("Authorization")
+				serveBufferedResponse(reverseProxy, w, r)
 				return
 			}
 			if p.mode == harnessapi.LoginManual {
