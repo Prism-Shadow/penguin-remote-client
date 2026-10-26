@@ -143,6 +143,16 @@ func TestProxyWebSocketOriginTranslation(t *testing.T) {
 				var forwarded atomic.Int32
 				backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					forwarded.Add(1)
+					if r.URL.Path != "/api/terminals/terminal-1/stream" {
+						t.Error("terminal path changed")
+					}
+					if manual {
+						if r.Header.Get("Cookie") != "preferences=dark" {
+							t.Error("manual terminal credentials changed")
+						}
+					} else if cookie, err := r.Cookie(harnessapi.SessionCookieName); err != nil || cookie.Value != "boundary-session" {
+						t.Error("automatic terminal lost its Harness session")
+					}
 					if r.Header.Get("Origin") != "http://"+r.Host || r.Header.Get("X-Forwarded-Proto") != "http" {
 						http.Error(w, "cross_origin_write", 403)
 						return
@@ -169,7 +179,7 @@ func TestProxyWebSocketOriginTranslation(t *testing.T) {
 				if allowed {
 					requestOrigin = "https://public.remote.test"
 				}
-				fmt.Fprintf(conn, "GET /api/socket HTTP/1.1\r\nHost: spoofed.test\r\nOrigin: %s\r\nX-Forwarded-Proto: https\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n", requestOrigin)
+				fmt.Fprintf(conn, "GET /api/terminals/terminal-1/stream HTTP/1.1\r\nHost: spoofed.test\r\nOrigin: %s\r\nX-Forwarded-Proto: https\r\nCookie: preferences=dark\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n", requestOrigin)
 				reader := bufio.NewReader(conn)
 				resp, err := http.ReadResponse(reader, nil)
 				if err != nil {

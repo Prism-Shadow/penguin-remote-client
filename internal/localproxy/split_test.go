@@ -81,7 +81,7 @@ func TestSplitFrontendAndBackendRouting(t *testing.T) {
 				}
 			}
 			// The API socket reaches Harness; the HMR socket reaches Vite.
-			for _, path := range []string{"/api/socket", "/?token=dev-hmr"} {
+			for _, path := range []string{"/api/socket", "/api/terminals/terminal-1/stream", "/?token=dev-hmr"} {
 				conn, err := net.DialTimeout("tcp", address, time.Second)
 				if err != nil {
 					t.Fatal(err)
