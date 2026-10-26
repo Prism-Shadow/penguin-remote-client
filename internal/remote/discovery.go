@@ -26,17 +26,37 @@ var DefaultHarnessCandidates = []HarnessInstance{
 	{URL: "http://localhost:7369", Port: 7369, Kind: "cli-web", Source: "penguin web"},
 }
 
-func DiscoverHarness(ctx context.Context) ([]HarnessInstance, error) {
+func DiscoverHarness(ctx context.Context, selectedURL string) ([]HarnessInstance, error) {
 	client := &http.Client{Timeout: 900 * time.Millisecond}
+	candidates := harnessCandidates()
+	if selectedURL != "" {
+		backend, err := (Config{Harness: HarnessConfig{LocalURL: selectedURL}}).LocalBackend()
+		if err != nil {
+			return nil, err
+		}
+		selected := HarnessInstance{URL: selectedURL, Port: backend.Port, Kind: "configured", Source: "Selected PenguinHarness"}
+		for _, candidate := range candidates {
+			if candidate.URL == selectedURL {
+				selected = candidate
+				break
+			}
+		}
+		candidates = append([]HarnessInstance{selected}, candidates...)
+	}
 	var found []HarnessInstance
-	for _, candidate := range harnessCandidates() {
+	seen := make(map[string]bool)
+	for _, candidate := range candidates {
+		if seen[candidate.URL] {
+			continue
+		}
+		seen[candidate.URL] = true
 		ok, err := probeHarness(ctx, client, candidate.URL)
 		if err == nil && ok {
 			found = append(found, candidate)
 		}
 	}
 	if len(found) == 0 {
-		return nil, fmt.Errorf("no local PenguinHarness service found on ports 7364, 7365, 7368, or 7369")
+		return nil, fmt.Errorf("no local PenguinHarness service found at the selected address or on known ports")
 	}
 	return found, nil
 }

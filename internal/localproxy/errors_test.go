@@ -37,7 +37,7 @@ func TestLocalFailuresUseSanitizedRemotePage(t *testing.T) {
 		{"session issue failed", "harness_session_failed", failedIssuer{}, harnessapi.RemoteSession{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p, err := Start(target, tc.issuer, false, false, tc.initial)
+			p, err := Start(target, "", "http://public.remote.test", tc.issuer, tc.initial)
 			if err != nil {
 				t.Fatal(err)
 			}

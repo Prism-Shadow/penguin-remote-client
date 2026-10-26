@@ -101,6 +101,11 @@ func runDevConfig(args []string) error {
 	if err := cfg.Validate(); err != nil {
 		return err
 	}
+	resolvedPublicURL, err := cfg.TunnelPublicURL()
+	if err != nil {
+		return err
+	}
+	cfg.Tunnel.PublicURL = resolvedPublicURL
 	if err := remote.SaveConfig(*out, cfg); err != nil {
 		return err
 	}
@@ -345,7 +350,7 @@ func printUsage() {
 	fmt.Print(`Penguin Remote
 
 Usage:
-  penguin-remote dev-config -server-addr HOST -token TOKEN (-domain HOST|-subdomain NAME) [-local http://127.0.0.1:7364] [-data-root PATH]
+  penguin-remote dev-config -server-addr HOST -token TOKEN (-domain HOST|-subdomain NAME -public-url URL) [-local http://localhost:7364] [-data-root PATH]
   penguin-remote login [-penguin-go-url https://go.penguin.ooo] [-local http://127.0.0.1:7364] [-data-root PATH]
   penguin-remote app [-penguin-go-url https://go.penguin.ooo] [-local http://127.0.0.1:7364] [-data-root PATH]
   penguin-remote doctor [-config remote.dev.json]

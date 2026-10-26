@@ -214,7 +214,12 @@ func (a *appServer) handleTunnelStart(w http.ResponseWriter, r *http.Request) {
 	}
 	req = a.config.Harness
 	if local.LocalURL != "" {
+		if local.LocalURL != req.LocalURL {
+			req.DataRoot = ""
+		}
 		req.LocalURL = local.LocalURL
+	} else if a.localURL != "" && a.localURL != req.LocalURL {
+		req = remote.HarnessConfig{LocalURL: a.localURL}
 	}
 	if local.DataRoot != "" {
 		req.DataRoot = local.DataRoot
@@ -231,6 +236,8 @@ func (a *appServer) handleTunnelStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.config.Harness = req
+	a.localURL = req.LocalURL
+	a.dataRoot = req.DataRoot
 	a.startLocked(id)
 	if a.persistConfigLocked() != nil {
 		if a.cancelJournalDirty || a.cancelJournalBroken {
