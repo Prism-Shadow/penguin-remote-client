@@ -26,6 +26,67 @@ func runtimeConfig(t *testing.T, localURL string) remote.Config {
 	return remote.Config{Source: remote.SourceDevConfig, Device: remote.DeviceConfig{ID: "fallback-test"}, Harness: remote.HarnessConfig{LocalURL: localURL, DataRoot: root}, Tunnel: &remote.TunnelConfig{ServerAddr: "127.0.0.1", ServerPort: 7000, Token: "test-token", ProxyName: "slot", CustomDomain: "public.remote.test", PublicURL: "https://public.remote.test"}}
 }
 
+func TestRuntimeTranslatesOnlyGrantedPublicOrigin(t *testing.T) {
+	for _, sessionStatus := range []int{200, 404} {
+		t.Run(fmt.Sprint(sessionStatus), func(t *testing.T) {
+			var forwarded atomic.Int32
+			var localHost string
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				switch r.URL.Path {
+				case "/":
+					fmt.Fprint(w, "<title>PenguinHarness</title>")
+				case "/api/me":
+					fmt.Fprint(w, `{"user":{"userId":"admin"},"sessionVia":"token"}`)
+				case "/api/remote/session":
+					w.WriteHeader(sessionStatus)
+					if sessionStatus == 200 {
+						json.NewEncoder(w).Encode(map[string]any{"cookieName": "penguin_session", "sessionToken": "runtime-session", "expiresAt": time.Now().Add(time.Hour).Format(time.RFC3339), "maxAgeSeconds": 3600})
+					} else {
+						fmt.Fprint(w, `{"error":{"code":"not_found"}}`)
+					}
+				case "/api/probe":
+					forwarded.Add(1)
+					if r.Host != localHost || r.Header.Get("Origin") != "http://"+localHost || r.Header.Get("X-Forwarded-Proto") != "http" {
+						t.Error("runtime did not translate the public origin to the selected Harness")
+					}
+					fmt.Fprint(w, `{}`)
+				default:
+					t.Error("unexpected request")
+				}
+			}))
+			defer server.Close()
+			localHost = "public.remote.test"
+			rt, err := newClientRuntime(context.Background(), runtimeConfig(t, server.URL))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer rt.Close()
+			ip, port := rt.proxy.Backend()
+			for _, origin := range []string{"https://other.remote.test", "https://public.remote.test"} {
+				req, _ := http.NewRequest("POST", fmt.Sprintf("http://%s:%d/api/probe", ip, port), nil)
+				req.Host = "other.remote.test"
+				req.Header.Set("Origin", origin)
+				resp, err := http.DefaultClient.Do(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+				resp.Body.Close()
+				want := 403
+				if origin == "https://public.remote.test" {
+					want = 200
+				}
+				if resp.StatusCode != want {
+					t.Fatalf("status=%d want=%d", resp.StatusCode, want)
+				}
+			}
+			if forwarded.Load() != 1 {
+				t.Fatal("untrusted origin reached Harness")
+			}
+		})
+	}
+}
+
 func TestRuntimeLoginNegotiationAndRecovery(t *testing.T) {
 	for _, initialStatus := range []int{200, 404, 405} {
 		t.Run(fmt.Sprint(initialStatus), func(t *testing.T) {

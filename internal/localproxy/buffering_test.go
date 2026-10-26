@@ -199,7 +199,7 @@ func bufferedTestProxy(t *testing.T, handler http.HandlerFunc) (string, *http.Cl
 	t.Helper()
 	backend := httptest.NewServer(handler)
 	t.Cleanup(backend.Close)
-	p, err := Start(backend.URL, &fakeIssuer{}, false, false, testSession("initial-session"))
+	p, err := Start(backend.URL, "", "http://public.remote.test", &fakeIssuer{}, testSession("initial-session"))
 	if err != nil {
 		t.Fatal(err)
 	}

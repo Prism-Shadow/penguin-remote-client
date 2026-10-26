@@ -23,7 +23,7 @@ const (
 	MinSupportedConfigVersion = 1
 
 	DefaultProxyName  = "penguin-harness"
-	DefaultHarnessURL = "http://127.0.0.1:7364"
+	DefaultHarnessURL = "http://localhost:7364"
 
 	// SourceLogin marks a config produced by a Penguin Go browser login. The
 	// subscription state of these configs is always enforced.

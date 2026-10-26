@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -62,8 +61,12 @@ func newClientRuntimeForMode(ctx context.Context, cfg remote.Config, selected ha
 		_ = conn.Close()
 		return nil, &harnessStartupError{code: "harness_authorization_failed", err: fmt.Errorf("resolve local Harness authorization: %w", err)}
 	}
+	apiURL, err := remote.ResolveHarnessAPIURL(ctx, cfg.Harness.LocalURL, access)
+	if err != nil {
+		return nil, &harnessStartupError{code: "harness_authorization_failed", err: err}
+	}
 	harnessClient, err := harnessapi.NewClient(
-		cfg.Harness.LocalURL,
+		apiURL,
 		access.APIToken,
 		&http.Client{Timeout: 5 * time.Second},
 	)
@@ -79,18 +82,17 @@ func newClientRuntimeForMode(ctx context.Context, cfg remote.Config, selected ha
 	if err := cfg.ValidateTunnel(); err != nil {
 		return nil, err
 	}
-	secure, err := publicURLUsesHTTPS(cfg.Tunnel.PublicURL)
+	publicURL, err := cfg.TunnelPublicURL()
 	if err != nil {
 		return nil, err
 	}
-	// Vite rejects the public tunnel Host before serving the pnpm development UI. Normalize
-	// Host and Origin only for that known dev endpoint; packaged Harness servers keep the
-	// browser-facing origin so URL generation and their own origin checks retain normal behavior.
+	// Bind origin translation to this grant's public URL, never a forwarded Host.
+	// The same boundary applies to packaged Harness, dev servers and WebSockets.
 	var proxy *localproxy.Proxy
 	if mode == harnessapi.LoginManual {
-		proxy, err = localproxy.StartManual(cfg.Harness.LocalURL, secure, targetBackend.Port == 7365)
+		proxy, err = localproxy.StartManual(cfg.Harness.LocalURL, apiURL, publicURL)
 	} else {
-		proxy, err = localproxy.Start(cfg.Harness.LocalURL, harnessClient, secure, targetBackend.Port == 7365, initialSession)
+		proxy, err = localproxy.Start(cfg.Harness.LocalURL, apiURL, publicURL, harnessClient, initialSession)
 	}
 	if err != nil {
 		return nil, err
@@ -133,24 +135,6 @@ func (r *clientRuntime) Close() {
 		defer cancel()
 		_ = r.proxy.Close(ctx)
 	})
-}
-
-func publicURLUsesHTTPS(raw string) (bool, error) {
-	if raw == "" {
-		return true, nil
-	}
-	u, err := url.Parse(raw)
-	if err != nil {
-		return false, fmt.Errorf("parse public URL: %w", err)
-	}
-	switch u.Scheme {
-	case "https":
-		return true, nil
-	case "http":
-		return false, nil
-	default:
-		return false, fmt.Errorf("public URL must use http or https")
-	}
 }
 
 func (r *clientRuntime) ConnectionPhase() string { return r.runner.ConnectionPhase() }

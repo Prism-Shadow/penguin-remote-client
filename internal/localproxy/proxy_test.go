@@ -45,7 +45,7 @@ func TestProxyBootstrapsCookieAndInjectsItUpstream(t *testing.T) {
 	defer upstream.Close()
 
 	issuer := &fakeIssuer{}
-	p, err := Start("http://"+listener.Addr().String(), issuer, true, true, testSession("initial-session"))
+	p, err := Start("http://"+listener.Addr().String(), "", "https://device.remote.example.com", issuer, testSession("initial-session"))
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
@@ -62,10 +62,10 @@ func TestProxyBootstrapsCookieAndInjectsItUpstream(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200", resp.StatusCode)
 	}
-	if resp.Header.Get("X-Upstream-Host") != listener.Addr().String() {
+	if resp.Header.Get("X-Upstream-Host") != "device.remote.example.com" {
 		t.Fatalf("upstream Host = %q", resp.Header.Get("X-Upstream-Host"))
 	}
-	if resp.Header.Get("X-Upstream-Origin") != "http://"+listener.Addr().String() {
+	if resp.Header.Get("X-Upstream-Origin") != "http://device.remote.example.com" {
 		t.Fatalf("upstream Origin = %q", resp.Header.Get("X-Upstream-Origin"))
 	}
 	if resp.Header.Get("X-Upstream-Forwarded-Host") != "device.remote.example.com" {
@@ -96,7 +96,7 @@ func TestProxyKeepsValidExistingSession(t *testing.T) {
 	defer upstream.Close()
 
 	issuer := &fakeIssuer{}
-	p, err := Start("http://"+listener.Addr().String(), issuer, false, false, testSession("initial-session"))
+	p, err := Start("http://"+listener.Addr().String(), "", "http://public.remote.test", issuer, testSession("initial-session"))
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestProxyReplacesInvalidExistingSession(t *testing.T) {
 	defer upstream.Close()
 
 	issuer := &fakeIssuer{}
-	p, err := Start("http://"+listener.Addr().String(), issuer, false, false, testSession("initial-session"))
+	p, err := Start("http://"+listener.Addr().String(), "", "http://public.remote.test", issuer, testSession("initial-session"))
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestProxyDoesNotUseExpiredInitialSession(t *testing.T) {
 	issuer := &fakeIssuer{}
 	expired := testSession("expired-initial-session")
 	expired.ExpiresAt = time.Now().Add(-time.Second)
-	p, err := Start("http://"+listener.Addr().String(), issuer, false, false, expired)
+	p, err := Start("http://"+listener.Addr().String(), "", "http://public.remote.test", issuer, expired)
 	if err != nil {
 		t.Fatalf("Start returned error: %v", err)
 	}

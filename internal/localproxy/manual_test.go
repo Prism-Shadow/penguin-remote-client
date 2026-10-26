@@ -23,7 +23,7 @@ func manualTestProxy(t *testing.T, handler http.HandlerFunc) (string, *http.Clie
 	t.Helper()
 	backend := httptest.NewServer(handler)
 	t.Cleanup(backend.Close)
-	p, err := StartManual(backend.URL, false, false)
+	p, err := StartManual(backend.URL, "", "https://public.remote.test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,8 +45,8 @@ func TestManualProxyBrowserLoginLifecycle(t *testing.T) {
 		if r.Header.Get("Authorization") != "" {
 			t.Error("local token injected")
 		}
-		if r.Host != "public.remote.test" || (r.Header.Get("Origin") != "" && r.Header.Get("Origin") != publicOrigin) {
-			t.Error("packaged Harness Host/Origin boundary changed")
+		if r.Host != "public.remote.test" || r.Header.Get("Origin") != "http://"+r.Host || r.Header.Get("X-Forwarded-Proto") != "http" {
+			t.Error("Harness did not receive a consistent local origin")
 		}
 		cookie, _ := r.Cookie(harnessapi.SessionCookieName)
 		valid := loggedIn.Load() && cookie != nil && cookie.Value == "browser-login-session"
@@ -212,7 +212,7 @@ func TestAutomaticProxyDoesNotFallbackAfterUnsupportedError(t *testing.T) {
 		t.Error("automatic failure forwarded unauthenticated request")
 	}))
 	defer backend.Close()
-	p, err := Start(backend.URL, unsupportedIssuer{}, false, false, harnessapi.RemoteSession{})
+	p, err := Start(backend.URL, "", "http://public.remote.test", unsupportedIssuer{}, harnessapi.RemoteSession{})
 	if err != nil {
 		t.Fatal(err)
 	}

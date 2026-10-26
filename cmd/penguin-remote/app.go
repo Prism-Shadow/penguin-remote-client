@@ -363,7 +363,9 @@ func (a *appServer) handleLoginStart(w http.ResponseWriter, r *http.Request) {
 		a.mu.Unlock()
 	} else if req.DataRoot == "" {
 		a.mu.Lock()
-		req.DataRoot = a.dataRoot
+		if req.LocalURL == a.localURL {
+			req.DataRoot = a.dataRoot
+		}
 		a.mu.Unlock()
 	}
 	if _, err := (remote.Config{Harness: remote.HarnessConfig{LocalURL: req.LocalURL}}).LocalBackend(); err != nil {
@@ -467,7 +469,10 @@ func (a *appServer) handleCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *appServer) refreshHarnessDiscovery(ctx context.Context) error {
-	found, err := remote.DiscoverHarness(ctx)
+	a.mu.Lock()
+	selectedURL := a.localURL
+	a.mu.Unlock()
+	found, err := remote.DiscoverHarness(ctx, selectedURL)
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if err != nil {
@@ -476,13 +481,28 @@ func (a *appServer) refreshHarnessDiscovery(ctx context.Context) error {
 		return err
 	}
 	a.discovered = found
+	// A selection made while the probes ran must not be replaced by their result.
+	if a.localURL != selectedURL {
+		a.authStatus = "unchecked"
+		return nil
+	}
 	for _, instance := range found {
 		if instance.URL == a.localURL {
 			a.authStatus = "unchecked"
 			return nil
 		}
 	}
+	// Discovery runs before restoreIntent on startup. A saved desired connection
+	// owns its original target even while that target is temporarily unavailable.
+	if a.intent != nil || (a.config != nil && a.config.Desired) {
+		a.authStatus = "unchecked"
+		return nil
+	}
 	a.localURL = found[0].URL
+	a.dataRoot = ""
+	if a.intent == nil && a.config != nil {
+		a.config.Harness = remote.HarnessConfig{LocalURL: a.localURL}
+	}
 	a.authStatus = "unchecked"
 	return nil
 }
@@ -502,12 +522,14 @@ func writeJSON(w http.ResponseWriter, value any) {
 // because the tunnel it points at cannot be running otherwise.
 func configPublicURL(cfg *remote.Config, subscription remote.Subscription) string {
 	if cfg != nil && cfg.DeviceAccessToken != "" && cfg.Grant != nil && cfg.Tunnel != nil {
-		return cfg.Tunnel.PublicURL
+		publicURL, _ := cfg.TunnelPublicURL()
+		return publicURL
 	}
 	if cfg == nil || cfg.Tunnel == nil || subscription.Status != remote.EntitlementStateActive {
 		return ""
 	}
-	return cfg.Tunnel.PublicURL
+	publicURL, _ := cfg.TunnelPublicURL()
+	return publicURL
 }
 
 func configDeviceID(cfg *remote.Config) string {

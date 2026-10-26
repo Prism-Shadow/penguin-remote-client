@@ -40,20 +40,20 @@ type Proxy struct {
 	closeOnce sync.Once
 }
 
-func Start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool, initial harnessapi.RemoteSession) (*Proxy, error) {
+func Start(targetURL, apiURL, publicURL string, issuer SessionIssuer, initial harnessapi.RemoteSession) (*Proxy, error) {
 	if issuer == nil {
 		return nil, fmt.Errorf("automatic Harness login requires a session issuer")
 	}
-	return start(targetURL, issuer, secure, normalizeOrigin, initial, harnessapi.LoginAutomatic)
+	return start(targetURL, apiURL, publicURL, issuer, initial, harnessapi.LoginAutomatic)
 }
 
 // StartManual forwards only browser-supplied credentials. No local API token,
 // session issuer or desktop/browser cookie store is available to this proxy.
-func StartManual(targetURL string, secure, normalizeOrigin bool) (*Proxy, error) {
-	return start(targetURL, nil, secure, normalizeOrigin, harnessapi.RemoteSession{}, harnessapi.LoginManual)
+func StartManual(targetURL, apiURL, publicURL string) (*Proxy, error) {
+	return start(targetURL, apiURL, publicURL, nil, harnessapi.RemoteSession{}, harnessapi.LoginManual)
 }
 
-func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool, initial harnessapi.RemoteSession, mode harnessapi.LoginMode) (*Proxy, error) {
+func start(targetURL, apiURL, publicURL string, issuer SessionIssuer, initial harnessapi.RemoteSession, mode harnessapi.LoginMode) (*Proxy, error) {
 	target, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse local Harness target: %w", err)
@@ -61,6 +61,19 @@ func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 	if target.Scheme != "http" || target.Host == "" {
 		return nil, fmt.Errorf("local Harness target must be an http URL with a host")
 	}
+	apiTarget := target
+	if apiURL != "" {
+		apiTarget, err = url.Parse(apiURL)
+		if err != nil || apiTarget.Scheme != "http" || apiTarget.Host == "" {
+			return nil, fmt.Errorf("local Harness API target must be an http URL with a host")
+		}
+	}
+	public, err := parseOrigin(strings.TrimSuffix(publicURL, "/"))
+	if err != nil {
+		return nil, fmt.Errorf("parse public tunnel origin: %w", err)
+	}
+	publicAuthority, _ := url.Parse(publicURL)
+	split := apiTarget.Host != target.Host
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, fmt.Errorf("listen for local Harness proxy: %w", err)
@@ -68,30 +81,37 @@ func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 	p := &Proxy{
 		listener:  listener,
 		issuer:    issuer,
-		secure:    secure,
+		secure:    public.scheme == "https",
 		mode:      mode,
 		validated: make(map[string]cachedSession),
 		pending:   &initial,
 	}
 	reverseProxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
-			originalHost := req.Host
-			req.URL.Scheme = target.Scheme
-			req.URL.Host = target.Host
-			req.URL.Path = joinURLPath(target.Path, req.URL.Path)
-			if target.RawQuery == "" || req.URL.RawQuery == "" {
-				req.URL.RawQuery = target.RawQuery + req.URL.RawQuery
-			} else {
-				req.URL.RawQuery = target.RawQuery + "&" + req.URL.RawQuery
+			upstream := apiTarget
+			authority := publicAuthority.Host
+			if split && !harnessAPIPath(req.URL.Path) {
+				// Vite admits the local dev host. API requests bypass it and retain
+				// the public host, so Harness does not emit loopback preview URLs.
+				upstream = target
+				authority = target.Host
 			}
-			if normalizeOrigin {
-				req.Host = target.Host
-				if originalHost != "" {
-					req.Header.Set("X-Forwarded-Host", originalHost)
-				}
-				if req.Header.Get("Origin") != "" {
-					req.Header.Set("Origin", target.Scheme+"://"+target.Host)
-				}
+			req.URL.Scheme = upstream.Scheme
+			req.URL.Host = upstream.Host
+			req.URL.Path = joinURLPath(upstream.Path, req.URL.Path)
+			if upstream.RawQuery == "" || req.URL.RawQuery == "" {
+				req.URL.RawQuery = upstream.RawQuery + req.URL.RawQuery
+			} else {
+				req.URL.RawQuery = upstream.RawQuery + "&" + req.URL.RawQuery
+			}
+			// The public origin was checked before any local credentials were added.
+			// Preserve the external host while matching the local HTTP transport.
+			req.Host = authority
+			req.Header.Set("X-Forwarded-Host", authority)
+			req.Header.Set("X-Forwarded-Proto", upstream.Scheme)
+			req.Header.Del("Forwarded")
+			if req.Header.Get("Origin") != "" {
+				req.Header.Set("Origin", upstream.Scheme+"://"+authority)
 			}
 		},
 		// Streaming bypasses flush immediately; ordinary JSON coalesces Flush calls.
@@ -110,6 +130,10 @@ func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 	}
 	p.server = &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !public.allows(r.Header.Values("Origin")) {
+				http.Error(w, "request origin does not match this tunnel", http.StatusForbidden)
+				return
+			}
 			if p.mode == harnessapi.LoginManual {
 				serveBufferedResponse(reverseProxy, w, r)
 				return
@@ -141,6 +165,17 @@ func start(targetURL string, issuer SessionIssuer, secure, normalizeOrigin bool,
 		_ = p.server.Serve(listener)
 	}()
 	return p, nil
+}
+
+func harnessAPIPath(path string) bool {
+	if path == "/api" || strings.HasPrefix(path, "/api/") || strings.HasPrefix(path, "/preview/") {
+		return true
+	}
+	if strings.HasPrefix(path, "/server/") {
+		parts := strings.SplitN(strings.TrimPrefix(path, "/server/"), "/", 2)
+		return len(parts) == 2 && (parts[1] == "api" || strings.HasPrefix(parts[1], "api/"))
+	}
+	return false
 }
 
 func (p *Proxy) Backend() (string, int) {
