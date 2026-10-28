@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-import { app, BrowserWindow, dialog, shell, session, powerMonitor, net } from "electron";
+import { app, BrowserWindow, dialog, shell, session, powerMonitor, net, nativeTheme } from "electron";
 import electronUpdater from "electron-updater";
 import { UpdateController, updateUnsupportedReason } from "./update-controller.js";
 import { startUpdateBridge } from "./update-bridge.js";
@@ -19,6 +19,7 @@ import {
 import {startSystemBridge} from "./network.js";
 import { appendDesktopLog } from "./logging.js";
 import { createNetworkDiagnostics } from "./network-diagnostics.js";
+import { readTheme, themeBackgroundColor } from "./theme.js";
  let networkBridge: Awaited<ReturnType<typeof startSystemBridge>> | null = null;
  const APP_ID = "com.prismshadow.penguinremote";
 const DEFAULT_PENGUIN_GO_URL = "https://go.penguin.ooo";
@@ -174,6 +175,7 @@ function createWindow(origin: string): void {
   const iconPath = app.isPackaged
     ? path.join(process.resourcesPath, iconName)
     : path.join(app.getAppPath(), "build", iconName);
+  const theme = readTheme(configPathForService(app.getPath("userData"), buildConfig().penguinGoUrl));
   mainWindow = new BrowserWindow({
     width: 920,
     height: 680,
@@ -181,7 +183,7 @@ function createWindow(origin: string): void {
     minHeight: 520,
     show: false,
     autoHideMenuBar: true,
-    backgroundColor: "#0d0d0d",
+    backgroundColor: themeBackgroundColor(theme, nativeTheme.shouldUseDarkColors),
     ...(process.platform !== "darwin" && fs.existsSync(iconPath) ? { icon: iconPath } : {}),
     webPreferences: {
       contextIsolation: true,

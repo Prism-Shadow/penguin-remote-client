@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "dependencyFiles": {
-    "go.mod": "b1e0c2cc62ce3357f5b328bc344fc1a3385e4a9730597dfc3787b453c208be64",
+    "go.mod": "a5c7d9c74e6612aabd87709400371446d3c86357f59cf99410b6d241a81294e9",
     "go.sum": "0ffc708520f6ba2fa18bbd3192fd77fd9350a0d7fcf774a50341d83a166805b5",
     "third_party/frp/go.mod": "3251167595ce36bec25d6e6c58cc522547faa6136ed80653bb0ce967c6774fbf",
     "third_party/frp/go.sum": "75c4573a97c9df7800714ad3bc0927108e9738fcd422fdbfae83db15e3e43230",
