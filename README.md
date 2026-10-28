@@ -81,6 +81,17 @@ invalid sessions remain errors. The API client never follows redirects or uses
 a browser cookie jar. An explicit data directory is checked on its own; leaving
 it blank retains discovery of common data directories.
 
+If a running Harness restarts and rotates its API token, an automatic session
+exchange returning 401 triggers a reread of `api-token` from the already bound
+data directory. Remote validates the replacement as the local admin token at
+the same API address, then retries the exchange once without rebuilding the
+tunnel. Concurrent requests share the refresh; failed refreshes have a two-second
+backoff starting when the failed attempt completes. Missing, unchanged or
+invalid replacement tokens remain errors, and
+recovery never searches another installation or switches to manual sign-in.
+Existing valid browser sessions keep working. Fixed recovery events and reasons
+are written to the desktop's native-client log without credentials or raw errors.
+
 The login mode lasts for one access intent, including automatic reconnection.
 Automatic mode never silently falls back after an exchange or validation error.
 Manual mode makes no session exchange or validation calls while forwarding,

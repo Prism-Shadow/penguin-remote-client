@@ -18,6 +18,19 @@ type HarnessAccess struct {
 	APIToken string
 }
 
+// NewClient keeps credential refresh bound to the data root that authenticated
+// this installation. It never falls back to another root or rediscovers an API.
+func (a HarnessAccess) NewClient(apiURL string, client *http.Client) (*harnessapi.Client, error) {
+	if strings.TrimSpace(a.DataRoot) == "" {
+		return nil, errors.New("Harness credential refresh requires a bound data root")
+	}
+	tokenPath := filepath.Join(a.DataRoot, "api-token")
+	return harnessapi.NewClientWithTokenSource(apiURL, a.APIToken, client, func() (string, error) {
+		data, err := os.ReadFile(tokenPath)
+		return string(data), err
+	})
+}
+
 func ResolveHarnessAccess(ctx context.Context, localURL, configuredDataRoot string) (HarnessAccess, error) {
 	roots, err := harnessDataRootCandidates(configuredDataRoot)
 	if err != nil {
