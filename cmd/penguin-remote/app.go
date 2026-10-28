@@ -238,7 +238,20 @@ func (a *appServer) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = fmt.Fprint(w, appPageHTML)
+	w.Header().Set("Cache-Control", "no-store")
+	a.mu.Lock()
+	theme := a.theme
+	language := a.language
+	a.mu.Unlock()
+	if theme != "light" && theme != "dark" {
+		theme = "system"
+	}
+	if language != "en" {
+		language = "zh"
+	}
+	// Resolve both preferences before first paint, without waiting for status APIs.
+	page := strings.Replace(localizedAppPages[language], `data-theme="system"`, `data-theme="`+theme+`"`, 1)
+	_, _ = fmt.Fprint(w, page)
 }
 
 func (a *appServer) handleStatus(w http.ResponseWriter, _ *http.Request) {

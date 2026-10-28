@@ -9,7 +9,7 @@ function renderer() {
     const classes = new Set<string>();
     const styleProperties = new Map<string, string>();
     return [match[1]!, {
-      textContent: "", innerHTML: "", hidden: ["preferencesPanel", "supportPanel"].includes(match[1]!),
+      textContent: match[1] === "translations" ? html.match(/<script id="translations" type="application\/json">([\s\S]*?)<\/script>/)![1]! : "", innerHTML: "", hidden: ["preferencesPanel", "supportPanel"].includes(match[1]!),
       disabled: false, checked: false, value: "",
       scrollTop: 0,
       style: { setProperty: (key: string, value: string) => styleProperties.set(key, value) },

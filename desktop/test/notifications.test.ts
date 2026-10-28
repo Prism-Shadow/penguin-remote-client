@@ -3,6 +3,7 @@ import { createContext, runInContext } from "node:vm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 class Element {
+  lang = "";
   textContent = "";
   innerHTML = "";
   className = "";
@@ -42,13 +43,16 @@ const status = {
   entitlementStatus: "active", expiresAt: "2099-01-01T00:00:00Z",
 };
 
-function renderer() {
+function renderer(theme = "system", language = "zh") {
   const html = readFileSync(new URL("../../cmd/penguin-remote/assets/app.html", import.meta.url), "utf8");
   const elements = new Map([...html.matchAll(/id="([^"]+)"/g)].map(match => [match[1]!, new Element()]));
   const element = (id: string) => elements.get(id)!;
   element("preferencesPanel").hidden = true;
   element("supportPanel").hidden = true;
   const root = new Element();
+  root.dataset.theme = theme;
+  root.lang = language === "en" ? "en" : "zh-CN";
+  element("translations").textContent = html.match(/<script id="translations" type="application\/json">([\s\S]*?)<\/script>/)![1]!;
   // Leave the initial background request pending; each test controls subsequent requests.
   const context = createContext({
     document: {documentElement: root, getElementById: element, createElement: () => new Element(), querySelectorAll: () => [], addEventListener: () => {}},
@@ -69,6 +73,55 @@ function renderer() {
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
+
+describe("theme startup", () => {
+  it.each(["dark", "light", "system"])("keeps the server's %s theme while status requests are pending", theme => {
+    const ui = renderer(theme);
+    expect(ui.root.dataset.theme).toBe(theme);
+    for (const [mode, id] of [["system", "themeSystem"], ["light", "themeLight"], ["dark", "themeDark"]]) {
+      expect(ui.element(id!).attributes.get("aria-pressed")).toBe(String(theme === mode));
+    }
+    runInContext(`applyStatus(${JSON.stringify({ ...status, theme: theme === "dark" ? "light" : "dark" })})`, ui.context);
+    expect(ui.root.dataset.theme).toBe(theme);
+  });
+
+  it("does not let a delayed startup status undo a theme chosen in the current window", async () => {
+    const ui = renderer("dark");
+    ui.response({ theme: "light" });
+    await ui.element("themeLight").onclick();
+    expect(ui.context.fetch).toHaveBeenCalledWith("/api/preferences/theme", expect.objectContaining({
+      method: "POST", body: JSON.stringify({ theme: "light" }),
+    }));
+    expect(ui.root.dataset.theme).toBe("light");
+    runInContext(`applyStatus(${JSON.stringify({ ...status, theme: "dark" })})`, ui.context);
+    expect(ui.root.dataset.theme).toBe("light");
+    expect(ui.element("themeLight").attributes.get("aria-pressed")).toBe("true");
+  });
+});
+
+describe("language startup", () => {
+  it.each(["zh", "en"])("keeps the initial %s language when a stale status arrives", language => {
+    const ui = renderer("system", language);
+    const expected = language === "en" ? "en" : "zh-CN";
+    expect(ui.root.lang).toBe(expected);
+    runInContext(`applyStatus(${JSON.stringify({ ...status, language: language === "en" ? "zh" : "en" })})`, ui.context);
+    expect(ui.root.lang).toBe(expected);
+    expect(ui.element(language === "en" ? "langEn" : "langZh").attributes.get("aria-pressed")).toBe("true");
+  });
+
+  it.each(["zh", "en"])("does not undo a user choice of %s when the first status is delayed", async language => {
+    const previous = language === "en" ? "zh" : "en";
+    const ui = renderer("system", previous);
+    ui.response({ language });
+    await ui.element(language === "en" ? "langEn" : "langZh").onclick();
+    expect(ui.context.fetch).toHaveBeenCalledWith("/api/preferences/language", expect.objectContaining({
+      method: "POST", body: JSON.stringify({ language }),
+    }));
+    runInContext(`applyStatus(${JSON.stringify({ ...status, language: previous })})`, ui.context);
+    expect(ui.root.lang).toBe(language === "en" ? "en" : "zh-CN");
+    expect(ui.element(language === "en" ? "langEn" : "langZh").attributes.get("aria-pressed")).toBe("true");
+  });
+});
 
 describe("client update controls", () => {
   it("fits the menu to short windows and restores its natural size when space returns", () => {
@@ -211,7 +264,7 @@ describe("client action notifications", () => {
   });
 
   it("keeps automatic subscription refresh silent and preserves initial language and theme", async () => {
-    const ui = renderer();
+    const ui = renderer("dark", "en");
     ui.response({...status, language: "en", theme: "dark"});
     await runInContext("refreshSubscription()", ui.context);
     expect(ui.messages()).toEqual([]);
@@ -274,7 +327,7 @@ describe("client action notifications", () => {
   });
 
   it.each(["zh", "en"])("reports a successful stop while server cleanup is pending in %s", async language => {
-    const ui = renderer();
+    const ui = renderer("system", language);
     ui.render({desired: true, runnerStatus: "running", connectionStatus: "connected"});
     ui.response({...status, language, cancelPending: true, lastError: "cancel_pending"});
     const toggle = ui.element("remoteToggle");
