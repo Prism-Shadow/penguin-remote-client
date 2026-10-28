@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -70,9 +71,13 @@ type remoteSessionResponse struct {
 }
 
 type Client struct {
-	baseURL    *url.URL
-	apiToken   string
-	httpClient *http.Client
+	baseURL      *url.URL
+	apiToken     string
+	httpClient   *http.Client
+	tokenMu      sync.RWMutex
+	refreshMu    sync.Mutex
+	tokenSource  func() (string, error)
+	refreshAfter time.Time
 }
 
 func NewClient(baseURL, apiToken string, httpClient *http.Client) (*Client, error) {
@@ -107,12 +112,16 @@ func NewClient(baseURL, apiToken string, httpClient *http.Client) (*Client, erro
 }
 
 func (c *Client) ValidateAPIToken(ctx context.Context) error {
+	return c.validateAPIToken(ctx, c.currentAPIToken())
+}
+
+func (c *Client) validateAPIToken(ctx context.Context, token string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.endpoint("/api/me"), nil)
 	if err != nil {
 		return fmt.Errorf("create Harness API token check: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+c.apiToken)
+	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("check Harness API token: %w", err)
@@ -144,6 +153,27 @@ func (c *Client) ValidateAPIToken(ctx context.Context) error {
 }
 
 func (c *Client) IssueRemoteSession(ctx context.Context) (RemoteSession, error) {
+	token := c.currentAPIToken()
+	session, err := c.issueRemoteSession(ctx, token)
+	var refused *sessionHTTPError
+	if c.tokenSource == nil || !errors.As(err, &refused) || refused.status != http.StatusUnauthorized {
+		return session, err
+	}
+	token, err = c.refreshAPIToken(ctx, token)
+	if err != nil {
+		return RemoteSession{}, err
+	}
+	// One retry only, even if Harness restarts again while the token is checked.
+	session, err = c.issueRemoteSession(ctx, token)
+	if err != nil {
+		logSessionRecovery("session_retry_failed", sessionFailureReason(err))
+	} else {
+		logSessionRecovery("session_retry_completed", "issued")
+	}
+	return session, err
+}
+
+func (c *Client) issueRemoteSession(ctx context.Context, token string) (RemoteSession, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
@@ -155,7 +185,7 @@ func (c *Client) IssueRemoteSession(ctx context.Context) (RemoteSession, error) 
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+c.apiToken)
+	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return RemoteSession{}, fmt.Errorf("issue Harness remote session: %w", err)
@@ -172,7 +202,7 @@ func (c *Client) IssueRemoteSession(ctx context.Context) (RemoteSession, error) 
 			}
 			return RemoteSession{}, &SessionUnsupportedError{StatusCode: resp.StatusCode}
 		}
-		return RemoteSession{}, fmt.Errorf("Harness remote session endpoint returned %s", resp.Status)
+		return RemoteSession{}, &sessionHTTPError{status: resp.StatusCode}
 	}
 	if err := requireJSON(resp, data); err != nil {
 		return RemoteSession{}, fmt.Errorf("Harness remote session response: %w", err)

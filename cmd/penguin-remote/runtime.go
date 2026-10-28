@@ -65,9 +65,8 @@ func newClientRuntimeForMode(ctx context.Context, cfg remote.Config, selected ha
 	if err != nil {
 		return nil, &harnessStartupError{code: "harness_authorization_failed", err: err}
 	}
-	harnessClient, err := harnessapi.NewClient(
+	harnessClient, err := access.NewClient(
 		apiURL,
-		access.APIToken,
 		&http.Client{Timeout: 5 * time.Second},
 	)
 	if err != nil {

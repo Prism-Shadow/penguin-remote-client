@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -24,6 +26,124 @@ func runtimeConfig(t *testing.T, localURL string) remote.Config {
 		t.Fatal(err)
 	}
 	return remote.Config{Source: remote.SourceDevConfig, Device: remote.DeviceConfig{ID: "fallback-test"}, Harness: remote.HarnessConfig{LocalURL: localURL, DataRoot: root}, Tunnel: &remote.TunnelConfig{ServerAddr: "127.0.0.1", ServerPort: 7000, Token: "test-token", ProxyName: "slot", CustomDomain: "public.remote.test", PublicURL: "https://public.remote.test"}}
+}
+
+func TestRuntimeRecoversHarnessTokenRotationWithoutReconnecting(t *testing.T) {
+	for _, scenario := range []string{"rotated", "missing bound file", "wrong bound token", "manual"} {
+		t.Run(scenario, func(t *testing.T) {
+			var boot atomic.Int32
+			var issued, validations atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				current := "local-token"
+				if boot.Load() > 0 {
+					current = "rotated-token"
+				}
+				switch r.URL.Path {
+				case "/":
+					fmt.Fprint(w, "<title>PenguinHarness</title>")
+				case "/api/me":
+					if r.Header.Get("Authorization") == "Bearer "+current {
+						validations.Add(1)
+						fmt.Fprint(w, `{"user":{"userId":"admin"},"sessionVia":"token"}`)
+					} else if cookie, err := r.Cookie("penguin_session"); err == nil && cookie.Value == "runtime-session" {
+						fmt.Fprint(w, `{"user":{"userId":"admin"},"sessionVia":"remote"}`)
+					} else {
+						w.WriteHeader(401)
+					}
+				case "/api/remote/session":
+					issued.Add(1)
+					if scenario == "manual" {
+						w.WriteHeader(404)
+						fmt.Fprint(w, `{}`)
+					} else if r.Header.Get("Authorization") != "Bearer "+current {
+						w.WriteHeader(401)
+					} else {
+						json.NewEncoder(w).Encode(map[string]any{"cookieName": "penguin_session", "sessionToken": "runtime-session", "expiresAt": time.Now().Add(time.Hour).Format(time.RFC3339), "maxAgeSeconds": 3600})
+					}
+				case "/api/probe":
+					if r.Header.Get("Authorization") != "" {
+						t.Error("local API token leaked into browser forwarding")
+					}
+					fmt.Fprint(w, `{"ok":true}`)
+				default:
+					t.Errorf("unexpected path %s", r.URL.Path)
+				}
+			}))
+			defer server.Close()
+			cfg := runtimeConfig(t, server.URL)
+			rt, err := newClientRuntime(context.Background(), cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer rt.Close()
+			originalRunner := rt.runner
+			ip, port := rt.proxy.Backend()
+			request := func(cookieValue string, want int) {
+				t.Helper()
+				req, _ := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/api/probe", ip, port), nil)
+				req.Host = "public.remote.test"
+				// Empty matches clearing just the cookie's value in browser tools.
+				req.AddCookie(&http.Cookie{Name: "penguin_session", Value: cookieValue})
+				resp, err := http.DefaultClient.Do(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer resp.Body.Close()
+				body, _ := io.ReadAll(resp.Body)
+				if resp.StatusCode != want {
+					t.Fatalf("got %d want %d: %s", resp.StatusCode, want, body)
+				}
+				if want == 502 && !strings.Contains(string(body), "暂时无法连接 Harness") {
+					t.Fatal("session failure was not preserved")
+				}
+				if want == 200 && scenario != "manual" && cookieValue == "" && len(resp.Cookies()) != 1 {
+					t.Fatal("new browser session was not set")
+				}
+				if scenario == "manual" && len(resp.Cookies()) != 0 {
+					t.Fatal("manual mode injected a session")
+				}
+			}
+			request("", 200) // Consume the startup session before restarting Harness.
+			boot.Store(1)
+			tokenPath := filepath.Join(cfg.Harness.DataRoot, "api-token")
+			if scenario == "missing bound file" {
+				if err := os.Remove(tokenPath); err != nil {
+					t.Fatal(err)
+				}
+				// Another installation must not rescue a missing bound credential.
+				other := t.TempDir()
+				if err := os.WriteFile(filepath.Join(other, "api-token"), []byte("rotated-token"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				t.Setenv("PENGUIN_HOME", other)
+			} else {
+				token := "rotated-token"
+				if scenario == "wrong bound token" {
+					token = "unrelated-token"
+				}
+				if err := os.WriteFile(tokenPath, []byte(token), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			request("runtime-session", 200) // A valid browser session still survives.
+			want := 200
+			if scenario == "missing bound file" || scenario == "wrong bound token" {
+				want = 502
+			}
+			request("", want)
+			request("", want)
+			if rt.runner != originalRunner || rt.DataRoot() != cfg.Harness.DataRoot {
+				t.Fatal("credential refresh replaced the tunnel or installation binding")
+			}
+			if scenario == "rotated" && (validations.Load() != 2 || issued.Load() != 4) {
+				t.Fatalf("validations=%d session calls=%d", validations.Load(), issued.Load())
+			}
+			if scenario == "manual" && (validations.Load() != 1 || issued.Load() != 1) {
+				t.Fatal("manual mode attempted automatic credential recovery")
+			}
+		})
+	}
 }
 
 func TestRuntimeTranslatesOnlyGrantedPublicOrigin(t *testing.T) {
