@@ -244,11 +244,14 @@ func normalizeSessionCookie(value string) string {
 // that has been superseded, for instance - instead of matching on the message.
 type ResponseError struct {
 	RetryAllowed *bool
+	RetryAfter   time.Duration
 	Path         string
 	StatusCode   int
 	Status       string
 	// Code is the machine-readable reason the response body carried.
 	Code string
+	// ConnectionState carries only a confirmed online holder on a recovery denial.
+	ConnectionState string
 	// Message is the human-readable body text. It stays empty for endpoints
 	// whose response could echo a credential back.
 	Message string
@@ -310,7 +313,7 @@ func Retryable(err error) bool {
 // in the client log.
 var safeErrorCodes = map[string]bool{LeaseCodeSuperseded: true}
 
-func newResponseError(path string, statusCode int, status string, data []byte, redact bool) error {
+func newResponseError(path string, statusCode int, status string, data []byte, redact bool) *ResponseError {
 	responseErr := &ResponseError{
 		Path:       path,
 		StatusCode: statusCode,
@@ -319,10 +322,15 @@ func newResponseError(path string, statusCode int, status string, data []byte, r
 	}
 	if redact {
 		var flags struct {
-			Retryable *bool `json:"retryable"`
+			Retryable       *bool           `json:"retryable"`
+			ConnectionState json.RawMessage `json:"connectionState"`
 		}
 		if json.Unmarshal(data, &flags) == nil && safeErrorCodes[responseErr.Code] {
 			responseErr.RetryAllowed = flags.Retryable
+			if path == recoverPath && statusCode == http.StatusConflict &&
+				responseErr.Code == "slot_held_by_another_device" && string(flags.ConnectionState) == `"online"` {
+				responseErr.ConnectionState = "online"
+			}
 		}
 		if !safeErrorCodes[responseErr.Code] {
 			responseErr.Code = ""

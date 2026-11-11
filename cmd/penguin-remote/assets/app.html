@@ -105,6 +105,7 @@
     .endpoint-value a:hover { text-decoration: underline; }
     .route-arrow { color: #9ca3af; font-size: 20px; text-align: center; }
     .switch-wrap { display: flex; align-items: center; gap: 10px; }
+    .switch-wrap[hidden], #remoteReconnect[hidden] { display: none; }
     .switch-label { min-width: 42px; color: var(--text-soft); font-size: 12px; text-align: right; }
     .switch { position: relative; width: 38px; height: 22px; flex: 0 0 38px; }
     .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
@@ -314,7 +315,8 @@
       <div class="endpoint"><div class="endpoint-title"><span id="harnessDot" class="state-dot"></span><span>Penguin Harness</span></div><div id="localUrl" class="endpoint-value" data-i18n="scanningLocal">正在扫描本机服务</div></div>
       <div class="route-arrow" aria-hidden="true">→</div>
       <div class="endpoint"><div class="endpoint-title" data-i18n="publicAddress">公网地址</div><div id="publicUrl" class="endpoint-value" data-i18n="assignedAfterLogin">开启后分配</div></div>
-      <div class="switch-wrap"><span id="switchLabel" class="switch-label" data-i18n="switchStopped">已停止</span><label class="switch" aria-label="远程访问" data-i18n-aria="remoteAccess"><input id="remoteToggle" type="checkbox"><span class="switch-track"></span></label></div>
+      <div id="remoteSwitch" class="switch-wrap"><span id="switchLabel" class="switch-label" data-i18n="switchStopped">已停止</span><label class="switch" aria-label="远程访问" data-i18n-aria="remoteAccess"><input id="remoteToggle" type="checkbox"><span class="switch-track"></span></label></div>
+      <button id="remoteReconnect" class="button" type="button" data-i18n="remoteReconnect" hidden></button>
     </section>
     <div id="lastError" class="notice" role="alert"></div>
     <details>
@@ -428,22 +430,31 @@
     "proxy_wait": "正在接管",
     "reconnecting": "正在重连",
     "stopped": "已停止",
-    "grant_superseded": "已被接管",
+    "grant_superseded": "原连接授权已失效。手动重新连接可能会断开同账号下另一台设备的公网连接。",
+    "restoring_grant": "正在恢复连接授权",
+    "slot_held_by_another_device": "另一台设备已开启 Remote。重连后，可能无法远程访问那台设备。",
+    "slot_held_by_another_device_online": "另一台设备已开启 Remote。重连后，可能无法远程访问那台设备。",
+    "grant_ownership_unverified": "无法确认旧授权的槽位归属。手动重新连接可能会断开同账号下另一台设备的公网连接。",
+    "frps_tls_endpoint_changed": "远程服务器地址已变更，无法复用本地 TLS 信任设置。请联系管理员。",
+    "remote_requests_quota_exhausted": "服务器的远程连接请求记录已达上限。请联系管理员。",
+    "remote_limiter_capacity": "服务器的远程连接限流记录已达上限。请联系管理员。",
+    "remote_budget_configuration_invalid": "服务器的远程连接限流配置有误。请联系管理员。",
+    "remoteReconnect": "重新连接",
     "subscription_expired": "订阅到期",
-    "grant_revoked": "连接授权已释放，请主动开启以重新授权。",
+    "grant_revoked": "连接授权已撤销。请选择「重新连接」申请新授权。",
     "device_revoked": "设备身份已撤销，请重新登录。",
     "device_credential_invalid": "设备访问凭证已失效，请重新登录。",
     "protocol_upgrade_required": "升级后请先重新登录 Penguin Go。旧授权不能用于新版连接。",
     "subscription_required": "请订阅 Remote 后再开启。",
     "slot_over_quota": "当前槽位超过订阅额度，请恢复额度后刷新。",
-    "grant_credential_invalid": "连接授权校验失败，请主动重新开启。",
+    "grant_credential_invalid": "连接授权校验失败。请选择「重新连接」申请新授权。",
     "proxy_mismatch": "服务器代理配置不匹配，请联系客服。",
     "plugin_secret_invalid": "服务器鉴权配置有误，请联系客服。",
     "service_unavailable": "暂时无法连接，正在自动重试。您可以随时停止。",
     "harness_unavailable": "尚未连接到本机 Harness。请先启动 Harness，Remote 会自动重试。",
     "save_failed": "无法保存设置，请检查配置目录是否可写。",
     "login_failed": "登录未完成，请重新登录。",
-    "grant_key_rotated": "服务器授权密钥已更新，请主动重新开启。",
+    "grant_key_rotated": "服务器授权密钥已更新。请选择「重新连接」申请新授权。",
     "request_id_conflict": "开启请求发生冲突，请停止后重新开启。",
     "invalid_request": "服务器返回的授权不完整，请联系客服。",
     "checkingLogin": "正在检查登录状态",
@@ -627,22 +638,31 @@
     "proxy_wait": "Taking over",
     "reconnecting": "Reconnecting",
     "stopped": "Stopped",
-    "grant_superseded": "Taken over",
+    "grant_superseded": "The previous authorization is no longer valid. Reconnecting manually may disconnect another device on this account.",
+    "restoring_grant": "Restoring connection authorization",
+    "slot_held_by_another_device": "Remote is enabled on another device. Reconnecting may make that device unavailable remotely.",
+    "slot_held_by_another_device_online": "Remote is enabled on another device. Reconnecting may make that device unavailable remotely.",
+    "grant_ownership_unverified": "The previous slot's ownership could not be verified. Reconnecting manually may disconnect another device on this account.",
+    "frps_tls_endpoint_changed": "The remote server address changed and the saved TLS trust settings cannot be reused. Contact an administrator.",
+    "remote_requests_quota_exhausted": "The server has reached its limit for saved Remote requests. Contact an administrator.",
+    "remote_limiter_capacity": "The server has reached its limit for Remote rate-limit records. Contact an administrator.",
+    "remote_budget_configuration_invalid": "Remote rate limits are misconfigured on the server. Contact an administrator.",
+    "remoteReconnect": "Reconnect",
     "subscription_expired": "Subscription expired",
-    "grant_revoked": "Connection authorization was released. Turn on access to authorize again.",
+    "grant_revoked": "Connection authorization was revoked. Select Reconnect to request new authorization.",
     "device_revoked": "Device identity was revoked. Sign in again.",
     "device_credential_invalid": "Device access expired. Sign in again.",
     "protocol_upgrade_required": "Sign in to Penguin Go after upgrading. Previous authorization cannot be used.",
     "subscription_required": "Subscribe to Remote before turning on access.",
     "slot_over_quota": "This slot exceeds your subscription allowance. Restore the allowance and refresh.",
-    "grant_credential_invalid": "Connection authorization failed. Turn access on again.",
+    "grant_credential_invalid": "Connection authorization failed validation. Select Reconnect to request new authorization.",
     "proxy_mismatch": "Server proxy configuration does not match. Contact support.",
     "plugin_secret_invalid": "Server authorization is misconfigured. Contact support.",
     "service_unavailable": "Temporarily unavailable. Retrying automatically; you can stop at any time.",
     "harness_unavailable": "Local Harness is not connected yet. Start Harness; Remote will retry automatically.",
     "save_failed": "Cannot save settings. Check configuration directory permissions.",
     "login_failed": "Sign-in did not complete. Try again.",
-    "grant_key_rotated": "Server authorization changed. Turn access on again.",
+    "grant_key_rotated": "The server authorization key changed. Select Reconnect to request new authorization.",
     "request_id_conflict": "Start request conflicts. Stop and turn access on again.",
     "invalid_request": "The server returned incomplete authorization. Contact support.",
     "checkingLogin": "Checking sign-in",
@@ -1077,6 +1097,7 @@ function runnerLabel(status) {
 
 function connectionLabel(s) {
  if (translations[language][s.connectionStatus]) return t(s.connectionStatus);
+ if (s.runnerStatus === 'slot_held_by_another_device' || s.runnerStatus === 'grant_ownership_unverified') return t('runnerStopped');
  if (translations[language][s.runnerStatus]) return t(s.runnerStatus);
   if (s.runnerStatus !== 'running') return runnerLabel(s.runnerStatus);
   return t(({connected:'runnerConnected', connecting:'runnerConnecting', reconnecting:'runnerReconnecting'})[s.connectionStatus] || 'runnerConnecting');
@@ -1218,9 +1239,16 @@ function render(s) {
   document.getElementById('publicUrl').innerHTML = s.publicUrl ? '<a href="' + escapeHtml(s.publicUrl) + '" target="_blank" rel="noreferrer">' + escapeHtml(s.publicUrl) + '</a>' : t('assignedAfterLogin');
 
   const toggle = document.getElementById('remoteToggle');
+  const reconnect = document.getElementById('remoteReconnect');
+  const grantDenied = !s.desired && loggedIn &&
+    ['grant_superseded', 'grant_revoked', 'grant_credential_invalid', 'grant_key_rotated',
+      'slot_held_by_another_device', 'grant_ownership_unverified'].includes(s.runnerStatus);
+  document.getElementById('remoteSwitch').hidden = grantDenied;
+  reconnect.hidden = !grantDenied;
+  reconnect.disabled = actionPending || s.cancelPending || !s.harnessFound;
   const canStart = loggedIn;
   toggle.checked = Boolean(s.desired);
-  toggle.disabled = actionPending || (!s.desired && (!loggedIn || !s.harnessFound));
+  toggle.disabled = actionPending || grantDenied || (!s.desired && (!loggedIn || !s.harnessFound));
   document.getElementById('switchLabel').textContent = s.desired ? connectionLabel(s) : t(canStart?'switchStopped':'unavailable');
   document.getElementById('retryCancellation').hidden = !s.cancelPending;
 
@@ -1228,10 +1256,14 @@ function render(s) {
   const retryWarning = String(s.lastError || '').startsWith('Remote slot lease renewal failed, retrying in ');
   const connectionNotice = running && !connected && (!s.lastError || retryWarning);
   const waitingForHarness = Boolean(s.desired) && s.lastError === 'harness_unavailable';
+  const waitingForGrant = s.runnerStatus === 'restoring_grant';
   const waitingForCleanup = Boolean(s.cancelPending) && s.lastError === 'cancel_pending';
   error.textContent = recovering ? t('recoveringNotice') : connectionNotice ? t(s.connectionStatus === 'reconnecting' ? 'reconnectingNotice' : 'connectingNotice') : friendlyError(s.lastError);
+  if (grantDenied && s.cancelPending) {
+    error.textContent = friendlyError(s.runnerStatus) + ' ' + error.textContent;
+  }
   error.classList.toggle('visible', recovering || connectionNotice || Boolean(s.lastError));
-  error.classList.toggle('info', recovering || connectionNotice || waitingForHarness || waitingForCleanup);
+  error.classList.toggle('info', !grantDenied && (recovering || connectionNotice || waitingForHarness || waitingForGrant || waitingForCleanup));
   if (connectionFeedback !== null && !actionPending) {
     const {id, desired} = connectionFeedback;
     if (s.lastError && !waitingForCleanup) {
@@ -1271,11 +1303,12 @@ document.getElementById('rescan').onclick = () => buttonAction('rescan', 'scanni
   notify(status.harnessFound ? 'scanFoundToast' : 'scanEmptyToast', status.harnessFound ? 'success' : 'warning', {count: (status.harnesses || []).length}, id);
 });
 
-document.getElementById('remoteToggle').onchange = async event => {
+async function setRemoteConnection(shouldRun) {
   if (actionPending) return;
-  const shouldRun = event.target.checked;
+  const toggle = document.getElementById('remoteToggle');
   actionPending = true;
-  event.target.disabled = true;
+  toggle.disabled = true;
+  document.getElementById('remoteReconnect').disabled = true;
   if (connectionFeedback !== null) dismissToast(connectionFeedback.id);
   const id = notify(shouldRun ? 'remoteStartingToast' : 'remoteStoppingToast', 'loading');
   connectionFeedback = {id, desired: shouldRun};
@@ -1283,14 +1316,17 @@ document.getElementById('remoteToggle').onchange = async event => {
     if (shouldRun) await api('/api/tunnel/start', {method:'POST', headers: {'content-type':'application/json'}, body: JSON.stringify(localSettings())});
     else await api('/api/tunnel/stop', {method:'POST'});
   } catch (err) {
-    event.target.checked = !shouldRun;
+    toggle.checked = !shouldRun;
     connectionFeedback = null;
     showActionError(err, shouldRun ? 'remoteStartFailedToast' : 'remoteStopFailedToast', id);
   } finally {
     actionPending = false;
     await refresh();
   }
-};
+}
+
+document.getElementById('remoteToggle').onchange = event => setRemoteConnection(event.target.checked);
+document.getElementById('remoteReconnect').onclick = () => setRemoteConnection(true);
 
 async function chooseLanguage(next) {
   try {

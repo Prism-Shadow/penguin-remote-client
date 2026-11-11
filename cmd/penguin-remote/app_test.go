@@ -59,14 +59,16 @@ func (f *fakeRuntimeFactory) latest() *fakeRuntime {
 }
 
 type slotStub struct {
-	mu             sync.Mutex
-	requests       []remoteapi.AcquireRequest
-	release        []remoteapi.ReleaseRequest
-	respond        func(context.Context, remoteapi.AcquireRequest) (*remoteapi.AcquireResponse, error)
-	status         *remoteapi.StatusResponse
-	statusErr      error
-	cancels        []remoteapi.CancelRequest
-	cancelResponse func(context.Context, string, remoteapi.CancelRequest) error
+	mu              sync.Mutex
+	requests        []remoteapi.AcquireRequest
+	recoveries      []remoteapi.RecoverRequest
+	release         []remoteapi.ReleaseRequest
+	respond         func(context.Context, remoteapi.AcquireRequest) (*remoteapi.AcquireResponse, error)
+	recoverResponse func(context.Context, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error)
+	status          *remoteapi.StatusResponse
+	statusErr       error
+	cancels         []remoteapi.CancelRequest
+	cancelResponse  func(context.Context, string, remoteapi.CancelRequest) error
 }
 
 func (f *slotStub) Acquire(ctx context.Context, _ string, r remoteapi.AcquireRequest) (*remoteapi.AcquireResponse, error) {
@@ -78,6 +80,16 @@ func (f *slotStub) Acquire(ctx context.Context, _ string, r remoteapi.AcquireReq
 		return respond(ctx, r)
 	}
 	return acquired(), nil
+}
+func (f *slotStub) Recover(ctx context.Context, _ string, r remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+	f.mu.Lock()
+	f.recoveries = append(f.recoveries, r)
+	respond := f.recoverResponse
+	f.mu.Unlock()
+	if respond != nil {
+		return respond(ctx, r)
+	}
+	return nil, &remoteapi.ResponseError{StatusCode: http.StatusNotFound}
 }
 func (f *slotStub) Release(_ context.Context, _ string, r remoteapi.ReleaseRequest) error {
 	f.mu.Lock()
@@ -255,6 +267,370 @@ func TestExplicitTakeoverStopsAutomaticReconnect(t *testing.T) {
 	post(t, s, "/api/tunnel/start", "{}")
 	eventually(t, func() bool { return stub.count() == 2 })
 }
+
+func TestLegacyOrOtherSavedGrantDenialRequiresManualReconnect(t *testing.T) {
+	for _, reason := range []string{"grant_superseded", "grant_revoked", "grant_credential_invalid"} {
+		t.Run(reason, func(t *testing.T) {
+			cfg := identity()
+			if err := cfg.ApplyAcquire(acquired()); err != nil {
+				t.Fatal(err)
+			}
+			cfg.Desired = true
+			a, factory, server := newTestApp(t, &cfg, "")
+			stub := &slotStub{respond: func(context.Context, remoteapi.AcquireRequest) (*remoteapi.AcquireResponse, error) {
+				out := acquired()
+				out.Grant.GrantID = "new-grant"
+				out.Grant.Generation++
+				return out, nil
+			}}
+			a.newSlotClient = func(remote.Config) (slotClient, error) { return stub, nil }
+			a.restoreIntent()
+			eventually(t, func() bool { return factory.latest() != nil })
+			first := factory.latest()
+			first.exit <- &frpclient.ProtocolDenial{Operation: "Login", Code: reason, InitialLogin: true}
+			eventually(t, func() bool {
+				status := fetchStatus(t, server)
+				return status["desired"] == false && status["connectionStatus"] == "idle" &&
+					status["runnerStatus"] == reason && status["lastError"] == reason
+			})
+			saved, err := remote.LoadConfig(a.configPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !first.closed.Load() || saved.Desired || saved.Grant != nil || saved.Tunnel != nil || saved.PendingRequestID != "" {
+				t.Fatal("denied connection was not closed and cleared from disk")
+			}
+			a.restoreIntent()
+			post(t, server, "/api/wake", "{}")
+			post(t, server, "/api/subscription/refresh", "{}")
+			if factory.latest() != first || stub.count() != 0 || fetchStatus(t, server)["desired"] != false {
+				t.Fatal("restoring, waking or refreshing restarted a denied grant")
+			}
+			post(t, server, "/api/tunnel/start", "{}")
+			eventually(t, func() bool { return factory.latest() != first })
+			factory.latest().connected.Store(true)
+			eventually(t, func() bool { return fetchStatus(t, server)["connectionStatus"] == "connected" })
+			status := fetchStatus(t, server)
+			if stub.count() != 1 || status["connectionStatus"] != "connected" || status["lastError"] != "" {
+				t.Fatalf("manual reconnect did not clear the denial and connect: %+v", status)
+			}
+			saved, err = remote.LoadConfig(a.configPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !saved.Desired || saved.Grant == nil || saved.Grant.GrantID != "new-grant" || saved.Grant.Generation != 8 ||
+				saved.Harness.LocalURL != cfg.Harness.LocalURL {
+				t.Fatal("manual reconnect did not persist the new grant for the same Harness")
+			}
+		})
+	}
+}
+
+func restoreTestGrant(t *testing.T, stub *slotStub) (*appServer, *fakeRuntimeFactory, *httptest.Server, *fakeRuntime) {
+	t.Helper()
+	cfg := identity()
+	if err := cfg.ApplyAcquire(acquired()); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Tunnel.TrustedCAFile = "saved-ca.pem"
+	cfg.Desired = true
+	a, factory, server := newTestApp(t, &cfg, "")
+	a.newSlotClient = func(remote.Config) (slotClient, error) { return stub, nil }
+	a.restoreIntent()
+	eventually(t, func() bool { return factory.latest() != nil })
+	return a, factory, server, factory.latest()
+}
+
+func supersededLogin(initial bool) *frpclient.ProtocolDenial {
+	retry := false
+	return &frpclient.ProtocolDenial{Operation: "Login", Code: "grant_superseded", InitialLogin: initial, RetryAllowed: &retry}
+}
+
+func recoveredGrant() *remoteapi.AcquireResponse {
+	out := acquired()
+	out.Grant.GrantID = "recovered-grant"
+	out.Grant.Generation++
+	return out
+}
+
+func TestRestoreRecoversSameSlotAndRetriesWithOriginalRequest(t *testing.T) {
+	calls := make(chan remoteapi.RecoverRequest, 2)
+	var firstAttempt time.Time
+	stub := &slotStub{recoverResponse: func(_ context.Context, req remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+		if firstAttempt.IsZero() {
+			firstAttempt = time.Now()
+			calls <- req
+			return nil, &remoteapi.ResponseError{StatusCode: 429, Code: "remote_rate_limited", RetryAfter: 1500 * time.Millisecond}
+		}
+		calls <- req
+		if time.Since(firstAttempt) < 1500*time.Millisecond {
+			t.Error("wake bypassed Retry-After")
+		}
+		return recoveredGrant(), nil
+	}}
+	a, factory, server, first := restoreTestGrant(t, stub)
+	first.exit <- supersededLogin(true)
+	var original remoteapi.RecoverRequest
+	select {
+	case original = <-calls:
+	case <-time.After(3 * time.Second):
+		t.Fatal("recovery did not start")
+	}
+	if original.RequestID == "" || original.GrantID != "grant" || original.SlotIndex != 1 || original.Generation != 7 ||
+		original.HarnessLocalURL != remote.DefaultHarnessURL {
+		t.Fatalf("invalid recovery binding: %+v", original)
+	}
+	post(t, server, "/api/wake", "{}")
+	eventually(t, func() bool { return factory.latest() != first })
+	if retry := <-calls; retry != original {
+		t.Fatalf("retry changed the recovery request: %+v", retry)
+	}
+	saved, err := remote.LoadConfig(a.configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !saved.Desired || saved.Grant == nil || saved.Grant.GrantID != "recovered-grant" || saved.Grant.Generation != 8 ||
+		saved.Tunnel == nil || saved.Tunnel.TrustedCAFile != "saved-ca.pem" ||
+		saved.Harness.LocalURL != original.HarnessLocalURL || saved.PendingRequestID != "" || stub.count() != 0 {
+		t.Fatal("automatic recovery did not save the new grant or invoked manual acquire")
+	}
+	second := factory.latest()
+	second.connected.Store(true)
+	eventually(t, func() bool { return fetchStatus(t, server)["connectionStatus"] == "connected" })
+	second.exit <- supersededLogin(true)
+	eventually(t, func() bool { return fetchStatus(t, server)["runnerStatus"] == "grant_superseded" })
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if len(stub.recoveries) != 2 || len(stub.requests) != 0 {
+		t.Fatal("superseding the recovered grant initiated a new recovery")
+	}
+}
+
+func TestRestoreRecoveryStopsWhenSlotIsHeldOrCannotBeVerified(t *testing.T) {
+	for _, tc := range []struct {
+		name, reason, state, notice string
+		status                      int
+	}{
+		{name: "online holder", reason: "slot_held_by_another_device", state: "online", notice: "slot_held_by_another_device_online", status: 409},
+		{name: "holder without online evidence", reason: "slot_held_by_another_device", notice: "slot_held_by_another_device", status: 409},
+		{name: "unverified", reason: "grant_ownership_unverified", notice: "grant_ownership_unverified", status: 409},
+		{name: "request quota", reason: "remote_requests_quota_exhausted", notice: "remote_requests_quota_exhausted", status: 409},
+		{name: "limiter capacity", reason: "remote_limiter_capacity", notice: "remote_limiter_capacity", status: 409},
+		{name: "invalid limiter config", reason: "remote_budget_configuration_invalid", notice: "remote_budget_configuration_invalid", status: 409},
+		{name: "request conflict", reason: "request_id_conflict", notice: "request_id_conflict", status: 409},
+		{name: "Go without recovery", notice: "grant_superseded", status: 404},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stub := &slotStub{recoverResponse: func(context.Context, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+				return nil, &remoteapi.ResponseError{StatusCode: tc.status, Code: tc.reason, ConnectionState: tc.state}
+			}}
+			a, factory, server, first := restoreTestGrant(t, stub)
+			first.exit <- supersededLogin(true)
+			eventually(t, func() bool {
+				status := fetchStatus(t, server)
+				return status["desired"] == false && status["cancelPending"] == false && status["lastError"] == tc.notice
+			})
+			a.restoreIntent()
+			post(t, server, "/api/wake", "{}")
+			if factory.latest() != first || stub.count() != 0 {
+				t.Fatal("denial triggered a connection or manual acquisition")
+			}
+			post(t, server, "/api/tunnel/start", "{}")
+			eventually(t, func() bool { return factory.latest() != first })
+			factory.latest().connected.Store(true)
+			eventually(t, func() bool { return fetchStatus(t, server)["connectionStatus"] == "connected" })
+			stub.mu.Lock()
+			defer stub.mu.Unlock()
+			if len(stub.recoveries) != 1 || len(stub.requests) != 1 || len(stub.cancels) != 0 {
+				t.Fatal("expected only one recovery and one explicit manual acquire")
+			}
+		})
+	}
+}
+
+func TestRestoreRecoveryDoesNotRunAfterEstablishedLogin(t *testing.T) {
+	stub := &slotStub{}
+	_, _, server, first := restoreTestGrant(t, stub)
+	first.exit <- supersededLogin(false)
+	eventually(t, func() bool { return fetchStatus(t, server)["runnerStatus"] == "grant_superseded" })
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if len(stub.recoveries) != 0 || len(stub.requests) != 0 {
+		t.Fatal("takeover after an established login triggered recovery")
+	}
+}
+
+func TestRecoveryRequestQuotaCancelsOnlyAfterAnAmbiguousOutcome(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		firstError  error
+		wantCancels int
+	}{
+		{name: "known rate limit", firstError: &remoteapi.ResponseError{StatusCode: 429, Code: "remote_rate_limited"}},
+		{name: "unknown network outcome", firstError: errors.New("lost response"), wantCancels: 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			attempts := 0
+			stub := &slotStub{recoverResponse: func(context.Context, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+				attempts++
+				if attempts == 1 {
+					return nil, tc.firstError
+				}
+				return nil, &remoteapi.ResponseError{StatusCode: 409, Code: "remote_requests_quota_exhausted"}
+			}}
+			_, _, server, first := restoreTestGrant(t, stub)
+			first.exit <- supersededLogin(true)
+			eventually(t, func() bool {
+				status := fetchStatus(t, server)
+				return status["lastError"] == "remote_requests_quota_exhausted" && status["desired"] == false && status["cancelPending"] == false
+			})
+			stub.mu.Lock()
+			defer stub.mu.Unlock()
+			if len(stub.recoveries) != 2 || stub.recoveries[0].RequestID != stub.recoveries[1].RequestID ||
+				len(stub.cancels) != tc.wantCancels || len(stub.requests) != 0 {
+				t.Fatal("quota denial did not preserve the appropriate cancellation fence")
+			}
+		})
+	}
+}
+
+func TestStopDuringKnownRecoveryRateLimitHasNoRequestToCancel(t *testing.T) {
+	stub := &slotStub{recoverResponse: func(context.Context, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+		return nil, &remoteapi.ResponseError{StatusCode: 429, Code: "remote_rate_limited", RetryAfter: time.Minute}
+	}}
+	a, factory, server, first := restoreTestGrant(t, stub)
+	first.exit <- supersededLogin(true)
+	eventually(t, func() bool {
+		return fetchStatus(t, server)["lastError"] == "service_unavailable" && taskCount(a) == 0
+	})
+	post(t, server, "/api/tunnel/stop", "{}")
+	status := fetchStatus(t, server)
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if status["desired"] != false || status["cancelPending"] != false || factory.latest() != first ||
+		len(stub.recoveries) != 1 || len(stub.cancels) != 0 {
+		t.Fatal("stopping a definitively rate-limited recovery attempted cancellation or reconnected")
+	}
+}
+
+func TestStopFencesInFlightRecovery(t *testing.T) {
+	started := make(chan remoteapi.RecoverRequest, 1)
+	reply := make(chan struct{})
+	releaseReply := sync.OnceFunc(func() { close(reply) })
+	defer releaseReply()
+	stub := &slotStub{recoverResponse: func(_ context.Context, req remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+		started <- req
+		<-reply
+		return recoveredGrant(), nil
+	}}
+	a, factory, server, first := restoreTestGrant(t, stub)
+	first.exit <- supersededLogin(true)
+	var request remoteapi.RecoverRequest
+	select {
+	case request = <-started:
+	case <-time.After(3 * time.Second):
+		t.Fatal("recovery did not start")
+	}
+	saved, err := remote.LoadConfig(a.configPath)
+	if err != nil || saved.PendingRequestID != "" {
+		t.Fatal("an interrupted recovery could be replayed as manual acquire")
+	}
+	post(t, server, "/api/tunnel/stop", "{}")
+	eventually(t, func() bool {
+		stub.mu.Lock()
+		defer stub.mu.Unlock()
+		return len(stub.cancels) == 1 && stub.cancels[0].RequestID == request.RequestID
+	})
+	releaseReply()
+	eventually(t, func() bool {
+		stub.mu.Lock()
+		defer stub.mu.Unlock()
+		for _, release := range stub.release {
+			if release.GrantID == "recovered-grant" && release.Generation == 8 {
+				return true
+			}
+		}
+		return false
+	})
+	if factory.latest() != first || stub.count() != 0 || fetchStatus(t, server)["desired"] != false {
+		t.Fatal("stop did not fence the recovering connection")
+	}
+}
+
+func TestRestartCancelsInterruptedRecovery(t *testing.T) {
+	started := make(chan remoteapi.RecoverRequest, 1)
+	reply := make(chan struct{})
+	defer close(reply)
+	stub := &slotStub{recoverResponse: func(_ context.Context, req remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+		started <- req
+		<-reply
+		return nil, errors.New("lost recovery response")
+	}}
+	a, _, _, first := restoreTestGrant(t, stub)
+	first.exit <- supersededLogin(true)
+	var request remoteapi.RecoverRequest
+	select {
+	case request = <-started:
+	case <-time.After(3 * time.Second):
+		t.Fatal("recovery did not start")
+	}
+	a.closeCancellations()
+	a.mu.Lock()
+	rt := a.detachLocked()
+	a.mu.Unlock()
+	closeRunning(rt)
+	saved, err := remote.LoadConfig(a.configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	restored, factory, server := newTestApp(t, saved, a.penguinGoURL)
+	restored.configPath = a.configPath
+	fresh := &slotStub{}
+	restored.newSlotClient = func(remote.Config) (slotClient, error) { return fresh, nil }
+	restored.loadCancellations()
+	restored.restoreIntent()
+	eventually(t, func() bool {
+		fresh.mu.Lock()
+		defer fresh.mu.Unlock()
+		return len(fresh.cancels) == 1 && fresh.cancels[0].RequestID == request.RequestID
+	})
+	post(t, server, "/api/wake", "{}")
+	if factory.latest() != nil || fresh.count() != 0 || fetchStatus(t, server)["desired"] != false {
+		t.Fatal("restart turned an interrupted recovery into a new connection")
+	}
+}
+
+func TestRecoveryRejectsAnotherSlotOrCustomTLSAddress(t *testing.T) {
+	for _, tc := range []struct {
+		reason string
+		change func(*remoteapi.AcquireResponse)
+	}{
+		{reason: "invalid_request", change: func(out *remoteapi.AcquireResponse) { out.Grant.SlotIndex = 2 }},
+		{reason: "frps_tls_endpoint_changed", change: func(out *remoteapi.AcquireResponse) { out.Tunnel.ServerAddr = "other.remote.test" }},
+		{reason: "frps_tls_endpoint_changed", change: func(out *remoteapi.AcquireResponse) { out.Tunnel.ServerPort++ }},
+	} {
+		t.Run(tc.reason, func(t *testing.T) {
+			stub := &slotStub{recoverResponse: func(context.Context, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error) {
+				out := recoveredGrant()
+				tc.change(out)
+				return out, nil
+			}}
+			_, factory, server, first := restoreTestGrant(t, stub)
+			first.exit <- supersededLogin(true)
+			eventually(t, func() bool {
+				status := fetchStatus(t, server)
+				return status["lastError"] == tc.reason && status["desired"] == false && status["cancelPending"] == false
+			})
+			stub.mu.Lock()
+			defer stub.mu.Unlock()
+			if factory.latest() != first || len(stub.requests) != 0 || len(stub.release) != 0 ||
+				len(stub.recoveries) != 1 || len(stub.cancels) != 1 || stub.cancels[0].RequestID != stub.recoveries[0].RequestID {
+				t.Fatal("unsafe response was used or cleanup targeted something other than the recovery request")
+			}
+		})
+	}
+}
+
 func TestRefreshFailureAndCachedExpiryCannotStopRuntime(t *testing.T) {
 	a, f, stub, s := fixture(t)
 	post(t, s, "/api/tunnel/start", "{}")

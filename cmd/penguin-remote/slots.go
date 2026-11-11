@@ -4,27 +4,33 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math/rand/v2"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/Prism-Shadow/penguin-remote-client/internal/frpclient"
 	"github.com/Prism-Shadow/penguin-remote-client/internal/harnessapi"
 	"github.com/Prism-Shadow/penguin-remote-client/internal/remote"
 	"github.com/Prism-Shadow/penguin-remote-client/internal/remoteapi"
-	"math/rand/v2"
-	"net/http"
-	"time"
 )
 
 type slotClient interface {
 	Acquire(context.Context, string, remoteapi.AcquireRequest) (*remoteapi.AcquireResponse, error)
+	Recover(context.Context, string, remoteapi.RecoverRequest) (*remoteapi.AcquireResponse, error)
 	Release(context.Context, string, remoteapi.ReleaseRequest) error
 	Cancel(context.Context, string, remoteapi.CancelRequest) error
 	Status(context.Context, string) (*remoteapi.StatusResponse, error)
 }
 type connectionIntent struct {
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wake      chan struct{}
-	requestID string
-	harness   remote.HarnessConfig
-	loginMode harnessapi.LoginMode
+	ctx           context.Context
+	cancel        context.CancelFunc
+	wake          chan struct{}
+	requestID     string
+	harness       remote.HarnessConfig
+	loginMode     harnessapi.LoginMode
+	restoreGrant  bool
+	recoveryGrant *remoteapi.SlotGrant
 }
 
 func cloneConfig(c remote.Config) remote.Config {
@@ -171,9 +177,9 @@ func closeRunning(t *runningTunnel) {
 		t.runtime.Close()
 	}
 }
-func (a *appServer) startLocked(requestID string) {
+func (a *appServer) startLocked(requestID string, restoreGrant bool) {
 	ctx, cancel := context.WithCancel(context.Background())
-	i := &connectionIntent{ctx: ctx, cancel: cancel, wake: make(chan struct{}, 1), requestID: requestID, harness: a.config.Harness}
+	i := &connectionIntent{ctx: ctx, cancel: cancel, wake: make(chan struct{}, 1), requestID: requestID, harness: a.config.Harness, restoreGrant: restoreGrant}
 	a.intent = i
 	a.config.Desired = true
 	a.config.PendingRequestID = requestID
@@ -185,7 +191,8 @@ func (a *appServer) restoreIntent() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.config != nil && a.config.Desired && a.config.DeviceAccessToken != "" {
-		a.startLocked(a.config.PendingRequestID)
+		requestID := a.config.PendingRequestID
+		a.startLocked(requestID, requestID == "" && a.config.Grant != nil)
 	}
 }
 func (a *appServer) handleTunnelStart(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +245,7 @@ func (a *appServer) handleTunnelStart(w http.ResponseWriter, r *http.Request) {
 	a.config.Harness = req
 	a.localURL = req.LocalURL
 	a.dataRoot = req.DataRoot
-	a.startLocked(id)
+	a.startLocked(id, false)
 	if a.persistConfigLocked() != nil {
 		if a.cancelJournalDirty || a.cancelJournalBroken {
 			// Preserve the queued local intent behind the storage barrier. It must
@@ -320,12 +327,15 @@ func (a *appServer) waitIntent(i *connectionIntent, attempt int) bool {
 	}
 }
 func (a *appServer) reject(i *connectionIntent, reason string) {
+	a.rejectWithNotice(i, reason, reason, false)
+}
+func (a *appServer) rejectWithNotice(i *connectionIntent, reason, notice string, requestSettled bool) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if !a.owned(i) {
 		return
 	}
-	a.lastError = reason
+	a.lastError = notice
 	a.runnerStatus = reason
 	if reason == "device_revoked" || reason == "device_credential_invalid" {
 		a.config.DeviceAccessToken = ""
@@ -344,11 +354,80 @@ func (a *appServer) reject(i *connectionIntent, reason string) {
 		a.config.Grant = nil
 		a.config.Tunnel = nil
 	}
-	_ = a.persistConfigLocked()
+	if a.persistConfigLocked() == nil && requestSettled {
+		if task := a.taskForLocked(*a.config, i.requestID); task != nil {
+			_ = a.removeTaskLocked(task)
+		}
+	}
 	a.signalCancellationLocked()
 }
+
+func (a *appServer) beginGrantRecoveryLocked(i *connectionIntent, grant *remoteapi.SlotGrant, err error) bool {
+	var denial *frpclient.ProtocolDenial
+	if !i.restoreGrant || !errors.As(err, &denial) || !denial.InitialLogin ||
+		denial.Code != "grant_superseded" || denial.RetryAllowed == nil || *denial.RetryAllowed {
+		return false
+	}
+	id, err := randomState()
+	if err != nil {
+		return false
+	}
+	i.restoreGrant = false
+	i.recoveryGrant = grant
+	i.requestID = id
+	// Before dispatch the loop journals this ID for cancellation. A restart
+	// must never read it as a PendingRequestID for a manual Acquire.
+	a.runnerStatus = "restoring_grant"
+	return true
+}
+
+func recoverGrant(ctx context.Context, cli slotClient, cfg *remote.Config, i *connectionIntent) (*remoteapi.AcquireResponse, error) {
+	old := i.recoveryGrant
+	out, err := cli.Recover(ctx, cfg.DeviceAccessToken, remoteapi.RecoverRequest{
+		RequestID: i.requestID, HarnessLocalURL: i.harness.LocalURL,
+		GrantID: old.GrantID, SlotIndex: old.SlotIndex, Generation: old.Generation,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if out == nil || out.Grant.SlotIndex != old.SlotIndex ||
+		out.Grant.Generation <= old.Generation || out.Grant.GrantID == old.GrantID {
+		return nil, errors.New("invalid_request")
+	}
+	var caFile string
+	if cfg.Tunnel != nil && cfg.Tunnel.TrustedCAFile != "" {
+		if !strings.EqualFold(cfg.Tunnel.ServerAddr, out.Tunnel.ServerAddr) || cfg.Tunnel.ServerPort != out.Tunnel.ServerPort {
+			return nil, errors.New("frps_tls_endpoint_changed")
+		}
+		caFile = cfg.Tunnel.TrustedCAFile
+	}
+	if err := cfg.ApplyAcquire(out); err != nil {
+		return nil, err
+	}
+	cfg.Tunnel.TrustedCAFile = caFile
+	return out, nil
+}
+
+// Penguin Go issues these denials before allocating a request or a grant.
+func recoveryAdmissionDenied(err error) bool {
+	var response *remoteapi.ResponseError
+	if !errors.As(err, &response) {
+		return false
+	}
+	switch response.StatusCode {
+	case http.StatusTooManyRequests:
+		return response.Code == "remote_rate_limited" || response.Code == "remote_limiter_capacity"
+	case http.StatusConflict:
+		return response.Code == "remote_requests_quota_exhausted" || response.Code == "remote_limiter_capacity" ||
+			response.Code == "remote_budget_configuration_invalid"
+	default:
+		return false
+	}
+}
+
 func (a *appServer) connectIntent(i *connectionIntent) {
 	attempt := 0
+	recoveryUncertain := false
 	for i.ctx.Err() == nil {
 		a.mu.Lock()
 		if !a.owned(i) {
@@ -376,12 +455,20 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 		}
 		a.mu.Unlock()
 		cli, err := a.slotClient(cfg)
+		recovering := i.recoveryGrant != nil
+		admissionDenied := false
 		if err == nil && i.requestID != "" {
 			var out *remoteapi.AcquireResponse
-			acquireCtx, acquireCancel := context.WithTimeout(context.Background(), 15*time.Second)
-			out, err = cli.Acquire(acquireCtx, cfg.DeviceAccessToken, remoteapi.AcquireRequest{RequestID: i.requestID, HarnessLocalURL: i.harness.LocalURL})
-			acquireCancel()
-			if err == nil {
+			grantCtx, cancelGrant := context.WithTimeout(context.Background(), 15*time.Second)
+			if recovering {
+				out, err = recoverGrant(grantCtx, cli, &cfg, i)
+				admissionDenied = recoveryAdmissionDenied(err)
+				recoveryUncertain = recoveryUncertain || (err != nil && remoteapi.Retryable(err) && !admissionDenied)
+			} else {
+				out, err = cli.Acquire(grantCtx, cfg.DeviceAccessToken, remoteapi.AcquireRequest{RequestID: i.requestID, HarnessLocalURL: i.harness.LocalURL})
+			}
+			cancelGrant()
+			if err == nil && !recovering {
 				err = cfg.ApplyAcquire(out)
 			}
 			a.mu.Lock()
@@ -392,6 +479,13 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 					go a.releaseConfig(cfg)
 				}
 				return
+			}
+			if admissionDenied && !recoveryUncertain && remoteapi.Retryable(err) {
+				// A new attempt will journal the same ID again before dispatch.
+				// Until then, Stop has no admitted request to cancel.
+				if task := a.taskForLocked(cfg, i.requestID); task != nil {
+					_ = a.removeTaskLocked(task)
+				}
 			}
 			if err != nil && a.config.DeviceAccessToken != cfg.DeviceAccessToken {
 				a.mu.Unlock()
@@ -414,19 +508,46 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 				}
 				if err == nil {
 					i.requestID = ""
+					i.recoveryGrant = nil
 				}
 			}
 			a.mu.Unlock()
 		}
 		if err != nil {
-			if err.Error() == "save_failed" || err.Error() == "invalid_request" || err.Error() == "proxy_mismatch" {
+			if err.Error() == "save_failed" || err.Error() == "invalid_request" || err.Error() == "proxy_mismatch" ||
+				err.Error() == "frps_tls_endpoint_changed" {
 				a.reject(i, err.Error())
-				go a.releaseConfig(cfg)
+				if !recovering || err.Error() == "save_failed" {
+					go a.releaseConfig(cfg)
+				}
 				return
 			}
 			if !remoteapi.Retryable(err) {
 				reason := remoteapi.SafeReason(remoteapi.ErrorCode(err))
-				a.reject(i, reason)
+				notice := reason
+				requestSettled := false
+				var response *remoteapi.ResponseError
+				if recovering && errors.As(err, &response) {
+					switch {
+					case response.StatusCode == http.StatusNotFound || response.StatusCode == http.StatusMethodNotAllowed:
+						reason, notice = "grant_superseded", "grant_superseded"
+						requestSettled = !recoveryUncertain
+					case admissionDenied:
+						requestSettled = !recoveryUncertain
+					case response.StatusCode == http.StatusConflict && reason == "request_id_conflict":
+						// This ID belongs to a different operation or payload.
+						requestSettled = true
+					case response.StatusCode == http.StatusConflict &&
+						(reason == "slot_held_by_another_device" || reason == "grant_ownership_unverified" || reason == "acquire_cancelled"):
+						// Cancel a request with an earlier ambiguous outcome unless
+						// the server confirms it has already been fenced.
+						requestSettled = !recoveryUncertain || reason == "acquire_cancelled"
+						if reason == "slot_held_by_another_device" && response.ConnectionState == "online" {
+							notice = "slot_held_by_another_device_online"
+						}
+					}
+				}
+				a.rejectWithNotice(i, reason, notice, requestSettled)
 				if reason == "subscription_expired" || reason == "subscription_required" || reason == "slot_over_quota" {
 					select {
 					case <-i.ctx.Done():
@@ -443,7 +564,12 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 			}
 			a.mu.Unlock()
 			attempt++
-			if !a.waitIntent(i, attempt) {
+			var response *remoteapi.ResponseError
+			if recovering && errors.As(err, &response) && response.RetryAfter > 0 {
+				if !sleepContext(i.ctx, max(retryDelay(attempt), response.RetryAfter)) {
+					return
+				}
+			} else if !a.waitIntent(i, attempt) {
 				return
 			}
 			continue
@@ -496,6 +622,11 @@ func (a *appServer) connectIntent(i *connectionIntent) {
 		}
 		if a.tunnel == t {
 			a.tunnel = nil
+		}
+		if a.beginGrantRecoveryLocked(i, cfg.Grant, err) {
+			a.mu.Unlock()
+			attempt = 0
+			continue
 		}
 		a.runnerStatus = "reconnecting"
 		a.mu.Unlock()

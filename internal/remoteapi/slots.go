@@ -7,9 +7,12 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 const ProtocolVersion = 2
+const recoverPath = "/api/remote/client/tunnel/recover"
 
 type SlotGrant struct {
 	GrantID         string `json:"grantId"`
@@ -40,6 +43,14 @@ type AcquireResponse struct {
 	Grant           SlotGrant         `json:"grant"`
 	Tunnel          SlotTunnel        `json:"tunnel"`
 }
+type RecoverRequest struct {
+	ProtocolVersion int    `json:"protocolVersion"`
+	RequestID       string `json:"requestId"`
+	GrantID         string `json:"grantId"`
+	SlotIndex       int    `json:"slotIndex"`
+	Generation      int64  `json:"generation"`
+	HarnessLocalURL string `json:"harnessLocalUrl"`
+}
 type ReleaseRequest struct {
 	ProtocolVersion int    `json:"protocolVersion"`
 	GrantID         string `json:"grantId"`
@@ -62,7 +73,11 @@ var SafeReasons = map[string]bool{}
 func init() {
 	SafeReasons["acquire_cancelled"] = true
 	safeErrorCodes["acquire_cancelled"] = true
-	for _, code := range []string{"invalid_identifier", "invalid_sequence", "invalid_operation"} {
+	for _, code := range []string{"invalid_identifier", "invalid_sequence", "invalid_operation", "slot_held_by_another_device", "grant_ownership_unverified", "remote_rate_limited"} {
+		SafeReasons[code] = true
+		safeErrorCodes[code] = true
+	}
+	for _, code := range []string{"remote_requests_quota_exhausted", "remote_limiter_capacity", "remote_budget_configuration_invalid"} {
 		SafeReasons[code] = true
 		safeErrorCodes[code] = true
 	}
@@ -105,7 +120,13 @@ func (c *Client) deviceRequest(ctx context.Context, method, path, token string, 
 		return errors.New("service_unavailable")
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return newResponseError(path, resp.StatusCode, http.StatusText(resp.StatusCode), data, true)
+		err := newResponseError(path, resp.StatusCode, http.StatusText(resp.StatusCode), data, true)
+		if path == recoverPath {
+			if seconds, parseErr := strconv.ParseInt(resp.Header.Get("Retry-After"), 10, 32); parseErr == nil && seconds > 0 {
+				err.RetryAfter = time.Duration(seconds) * time.Second
+			}
+		}
+		return err
 	}
 	if json.Unmarshal(data, out) != nil {
 		if path == "/api/remote/client/tunnel/cancel" {
@@ -120,6 +141,12 @@ func (c *Client) Acquire(ctx context.Context, token string, req AcquireRequest) 
 	req.ProtocolVersion = 2
 	var out AcquireResponse
 	err := c.deviceRequest(ctx, "POST", "/api/remote/client/tunnel/acquire", token, req, &out)
+	return &out, err
+}
+func (c *Client) Recover(ctx context.Context, token string, req RecoverRequest) (*AcquireResponse, error) {
+	req.ProtocolVersion = ProtocolVersion
+	var out AcquireResponse
+	err := c.deviceRequest(ctx, "POST", recoverPath, token, req, &out)
 	return &out, err
 }
 func (c *Client) Release(ctx context.Context, token string, req ReleaseRequest) error {
