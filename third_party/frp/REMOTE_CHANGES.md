@@ -23,9 +23,10 @@ Changes are restricted to:
   The root module also carries upstream's yamux replacement so both binaries use
   the same maintained implementation.
 
-- client/service.go and client/control.go: ProtocolError callbacks consume real
-  NewProxyResp, Pong and StartWorkConn messages, including the operation name.
-  Login remains alive on failure; reconnect backoff has no fast retry burst and
+- client/control_session.go, client/service.go and client/control.go: ProtocolError
+  callbacks consume LoginResp, NewProxyResp, Pong and StartWorkConn errors,
+  including the operation name. A terminal authorization denial stops the login
+  loop. Transient failures keep retrying; reconnect backoff has no fast retry burst and
   caps at 30 seconds. Proxy registration retains upstream's 30-second retry.
   A lifecycle mutex also makes close-before-Run safe and prevents a canceled
   startup from subsequently running; upstream otherwise calls a nil cancel.

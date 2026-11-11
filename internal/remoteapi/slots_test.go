@@ -3,10 +3,12 @@ package remoteapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestDeviceEndpointsBearerAndSecretRedaction(t *testing.T) {
@@ -74,6 +76,49 @@ func TestCancelExactContractAndAcquireCancelledReason(t *testing.T) {
 	_, err := client.Acquire(context.Background(), "device-secret", AcquireRequest{RequestID: "original"})
 	if ErrorCode(err) != "acquire_cancelled" || Retryable(err) {
 		t.Fatal("cancelled request was not a terminal refusal")
+	}
+}
+
+func TestRecoverSendsExactBindingAndReadsSafeDenials(t *testing.T) {
+	for _, tc := range []struct {
+		name, body, reason, connectionState string
+		status                              int
+		retryAfter                          time.Duration
+	}{
+		{name: "online holder", status: 409, body: `{"reason":"slot_held_by_another_device","retryable":false,"connectionState":"online","error":"private-secret"}`, reason: "slot_held_by_another_device", connectionState: "online"},
+		{name: "unknown ownership", status: 409, body: `{"reason":"grant_ownership_unverified","retryable":false,"connectionState":"online"}`, reason: "grant_ownership_unverified"},
+		{name: "request quota", status: 409, body: `{"reason":"remote_requests_quota_exhausted","retryable":false}`, reason: "remote_requests_quota_exhausted"},
+		{name: "rate limited", status: 429, body: `{"reason":"remote_rate_limited","retryable":true}`, reason: "remote_rate_limited", retryAfter: 7 * time.Second},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			input := RecoverRequest{RequestID: "restore", GrantID: "old-grant", SlotIndex: 2, Generation: 33, HarnessLocalURL: "http://127.0.0.1:7364"}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != "POST" || r.URL.Path != "/api/remote/client/tunnel/recover" || r.Header.Get("Authorization") != "Bearer device-secret" {
+					t.Error("recovery request used an unexpected route or authorization")
+				}
+				var sent RecoverRequest
+				decoder := json.NewDecoder(r.Body)
+				decoder.DisallowUnknownFields()
+				want := input
+				want.ProtocolVersion = 2
+				if err := decoder.Decode(&sent); err != nil || sent != want {
+					t.Errorf("recovery body = %+v, error = %v", sent, err)
+				}
+				if tc.retryAfter > 0 {
+					w.Header().Set("Retry-After", "7")
+				}
+				w.WriteHeader(tc.status)
+				w.Write([]byte(tc.body))
+			}))
+			defer server.Close()
+			client, _ := NewClient(ClientConfig{BaseURL: server.URL})
+			_, err := client.Recover(t.Context(), "device-secret", input)
+			var denial *ResponseError
+			if !errors.As(err, &denial) || denial.Code != tc.reason || denial.ConnectionState != tc.connectionState ||
+				denial.RetryAfter != tc.retryAfter || denial.Retryable() != (tc.retryAfter > 0) || strings.Contains(err.Error(), "private-secret") {
+				t.Fatalf("unexpected recovery denial: %#v", err)
+			}
+		})
 	}
 }
 

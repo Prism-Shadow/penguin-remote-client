@@ -117,6 +117,8 @@ func (r *Runner) Run(ctx context.Context) error {
 	err := r.service.Run(runCtx)
 	select {
 	case d := <-r.denial:
+		// Run returns the cancellation cause when it exits before starting a control.
+		d.InitialLogin = d.Operation == "Login" && errors.Is(err, context.Canceled)
 		return d
 	default:
 		return err

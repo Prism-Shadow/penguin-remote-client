@@ -1,3 +1,7 @@
+// Modified by Penguin Remote contributors in 2026. See REMOTE_CHANGES.md.
+// Copyright 2026 Prism Shadow and Penguin Remote contributors
+// SPDX-License-Identifier: Apache-2.0
+
 // Copyright 2026 The frp Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +48,7 @@ type controlSessionDialer struct {
 	vnetController *vnet.Controller
 
 	connectorCreator func(context.Context, *v1.ClientCommonConfig) Connector
+	protocolError    func(operation, code string)
 }
 
 func (d *controlSessionDialer) Dial(previousRunID string) (*SessionContext, error) {
@@ -80,6 +85,9 @@ func (d *controlSessionDialer) Dial(previousRunID string) (*SessionContext, erro
 	}
 	loginRespMsg := loginResult.resp
 	if loginRespMsg.Error != "" {
+		if d.protocolError != nil {
+			d.protocolError("Login", loginRespMsg.Error)
+		}
 		return nil, errors.New(loginRespMsg.Error)
 	}
 

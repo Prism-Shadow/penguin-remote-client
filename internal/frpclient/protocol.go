@@ -1,14 +1,16 @@
 package frpclient
 
 import (
-	"github.com/Prism-Shadow/penguin-remote-client/internal/remoteapi"
 	"strings"
+
+	"github.com/Prism-Shadow/penguin-remote-client/internal/remoteapi"
 )
 
 type ProtocolDenial struct {
 	Code         string
 	Operation    string
 	RetryAllowed *bool
+	InitialLogin bool
 }
 
 func (d *ProtocolDenial) Error() string  { return d.Code }
