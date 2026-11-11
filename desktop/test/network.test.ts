@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { once } from "node:events";
+import http from "node:http";
 import net from "node:net";
+import { describe, expect, it, vi } from "vitest";
 import {startSystemBridge, systemRoute} from "../src/network.js";
 describe("explicit system proxy bridge",()=>{
  it("uses first PAC route and fails closed on unsupported routes",()=>{
@@ -26,6 +28,75 @@ describe("explicit system proxy bridge",()=>{
    const echoed=new Promise<string>(r=>authorized.once("data",b=>r(b.toString())));authorized.write("test");expect(await echoed).toBe("test");authorized.destroy();
   } finally {bridge.close();await new Promise<void>(r=>backend.close(()=>r()));}
  });
+});
+
+it.each(["DIRECT", "PROXY", "SOCKS5"])("sets a 60-second TCP keepalive idle time on the %s outbound socket", async kind => {
+  const target = "frps.test:7000";
+  let requestedTarget: string | undefined;
+  const connectProxy = http.createServer().on("connect", (req, socket) => {
+    requestedTarget = req.url;
+    socket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+    socket.pipe(socket);
+  });
+  const socksProxy = net.createServer(socket => {
+    void (async () => {
+      const chunks = socket.iterator({ destroyOnReturn: false });
+      let pending = Buffer.alloc(0);
+      const read = async (size: number) => {
+        while (pending.length < size) {
+          const chunk = await chunks.next();
+          if (chunk.done) throw new Error("SOCKS connection closed during handshake");
+          pending = Buffer.concat([pending, chunk.value]);
+        }
+        const data = pending.subarray(0, size);
+        pending = pending.subarray(size);
+        return data;
+      };
+      await read(3);
+      socket.write(Buffer.from([5, 0]));
+      const header = await read(5);
+      const hostname = await read(header[4]!);
+      const port = (await read(2)).readUInt16BE();
+      requestedTarget = `${hostname}:${port}`;
+      await chunks.return?.();
+      socket.write(Buffer.from([5, 0, 0, 1, 127, 0, 0, 1, 0, 0]));
+      socket.pipe(socket);
+    })().catch(() => socket.destroy());
+  });
+  const upstream = kind === "DIRECT" ? net.createServer(socket => socket.pipe(socket))
+    : kind === "PROXY" ? connectProxy : socksProxy;
+  const upstreamSockets = new Set<net.Socket>();
+  upstream.on("connection", socket => upstreamSockets.add(socket));
+  upstream.listen(0, "127.0.0.1");
+  await once(upstream, "listening");
+  const address = upstream.address() as net.AddressInfo;
+  const endpoint = `127.0.0.1:${address.port}`;
+  const authority = kind === "DIRECT" ? endpoint : target;
+  const bridge = await startSystemBridge(async () => kind === "DIRECT" ? kind : `${kind} ${endpoint}`);
+  const url = new URL(bridge.url);
+  const setKeepAlive = vi.spyOn(net.Socket.prototype, "setKeepAlive");
+  const socket = net.connect(Number(url.port), url.hostname);
+  try {
+    const signal = AbortSignal.timeout(3_000);
+    const response = once(socket, "data", { signal });
+    const auth = Buffer.from("remote:" + bridge.secret).toString("base64");
+    socket.write(`CONNECT ${authority} HTTP/1.1\r\nHost: ${authority}\r\nProxy-Authorization: Basic ${auth}\r\n\r\n`);
+    expect(String((await response)[0])).toContain("200 Connection Established");
+    if (kind !== "DIRECT") expect(requestedTarget).toBe(target);
+    const call = setKeepAlive.mock.contexts.findIndex(
+      outbound => outbound instanceof net.Socket && outbound.remoteAddress === "127.0.0.1" && outbound.remotePort === address.port,
+    );
+    expect(setKeepAlive.mock.calls[call]).toEqual([true, 60_000]);
+    const echo = once(socket, "data", { signal });
+    socket.write("work connection");
+    expect(String((await echo)[0])).toBe("work connection");
+  } finally {
+    socket.destroy();
+    bridge.close();
+    setKeepAlive.mockRestore();
+    for (const upstreamSocket of upstreamSockets) upstreamSocket.destroy();
+    await new Promise<void>(resolve => upstream.close(() => resolve()));
+  }
 });
 
 it("uses only PAC-declared fallback and never silently connects direct", async () => {
