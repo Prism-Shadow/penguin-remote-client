@@ -156,6 +156,8 @@ func buildFRPConfig(cfg remote.Config, backend remote.LocalBackend) (*v1.ClientC
 	}
 	common.Transport.TLS.ServerName = cfg.Tunnel.ServerAddr
 	common.Transport.TLS.TrustedCaFile = cfg.Tunnel.TrustedCAFile
+	// Start TCP keepalive probes after 60 seconds of idle time on FRP sockets.
+	common.Transport.DialServerKeepAlive = 60
 	// Keep control heartbeats off the TCP connections carrying Harness responses.
 	common.Transport.TCPMux = func() *bool { v := false; return &v }()
 	common.Transport.HeartbeatInterval = 10

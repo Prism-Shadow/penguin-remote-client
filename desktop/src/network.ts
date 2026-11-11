@@ -4,6 +4,9 @@ import tls from "node:tls";
 import crypto from "node:crypto";
 import type { Duplex } from "node:stream";
 import { networkReason, type NetworkObserver } from "./network-diagnostics.js";
+
+const TCP_KEEPALIVE_IDLE_MS = 60_000;
+
 function notify(observer: NetworkObserver | undefined, event: Parameters<NetworkObserver>[0]): void {
   try { observer?.(event); } catch { /* Diagnostics cannot interrupt network handling. */ }
 }
@@ -20,7 +23,12 @@ function connected(host: string, port: number, secure = false): Promise<net.Sock
     const s = secure ? tls.connect({ host, port, servername: host }) : net.connect({ host, port });
     s.setTimeout(15000, () => s.destroy(new Error("network_timeout")));
     s.once("error", reject);
-    s.once(secure ? "secureConnect" : "connect", () => { s.removeListener("error", reject); resolve(s); });
+    s.once(secure ? "secureConnect" : "connect", () => {
+      s.removeListener("error", reject);
+      // The bridge owns this TCP socket to the target or the selected proxy.
+      s.setKeepAlive(true, TCP_KEEPALIVE_IDLE_MS);
+      resolve(s);
+    });
   });
 }
 async function readUntil(s: net.Socket, done: (data: Buffer) => number): Promise<Buffer> {

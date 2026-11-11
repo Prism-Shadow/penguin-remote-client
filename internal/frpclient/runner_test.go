@@ -45,6 +45,9 @@ func TestBuildFRPConfigUsesAuthenticatedProxyBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildFRPConfig returned error: %v", err)
 	}
+	if common.Transport.DialServerKeepAlive != 60 {
+		t.Fatalf("TCP keepalive idle time = %d seconds, want 60", common.Transport.DialServerKeepAlive)
+	}
 	if common.Transport.TCPMux == nil || *common.Transport.TCPMux {
 		t.Fatal("control and work connections must use separate TCP connections")
 	}
